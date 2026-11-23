@@ -1,61 +1,88 @@
 # Meridian PO Intake
 
-Milestone 1 runs a local review workflow. Upload a text-based PDF, inspect the draft against the original and the agreed prices, and approve the reviewed snapshot to create a sales order.
+The local dashboard stores purchase order PDFs, checks draft evidence and agreed prices, and turns a reviewed active snapshot into a PostgreSQL sales order. Milestone 2 adds source-backed corrections, exact resend receipts, and document revision decisions.
 
 ## Start the Windows demo
 
-Use PowerShell from the project folder. Start Docker Desktop and the Ollama Windows app. This workspace already has a virtual environment made with Python 3.12.14. On a fresh checkout, create it with `python -m venv .venv` using a working Python 3.12 installation.
+Start Docker Desktop and the Ollama Windows app. Use PowerShell from the project folder. This workspace already has a virtual environment. On a fresh checkout, create it with `python -m venv .venv` using a working Python 3.12 installation.
+
+In the API window, create an isolated database and PDF directory for this walkthrough. The suffix lets you repeat the demo with clean data.
 
 ```powershell
 # Run from your own repository root.
 .\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
 docker compose up -d --wait db
+$demoDb = 'po_demo_m2_' + (Get-Date -Format yyyyMMdd_HHmmss)
+docker compose exec -T db createdb -U po_demo $demoDb
+$env:DATABASE_URL = "postgresql+psycopg://po_demo:po_demo@127.0.0.1:55432/$demoDb"
+$env:PDF_STORAGE = "data/$demoDb/pdf"
+$env:OLLAMA_URL = 'http://127.0.0.1:11434'
 .\.venv\Scripts\python.exe -m alembic upgrade head
 .\.venv\Scripts\python.exe -m po_intake.seed
 ollama list
 ```
 
-If `qwen3:8b` is absent, run `ollama pull qwen3:8b`. Run each command below in its own PowerShell window from the project folder.
-
-**API**
+If `qwen3:8b` is absent, run `ollama pull qwen3:8b`. Launch the reproducible walkthrough in the same API window.
 
 ```powershell
-.\.venv\Scripts\python.exe -m uvicorn po_intake.api:app --host 127.0.0.1 --port 8000
+.\.venv\Scripts\python.exe -m uvicorn scripts.milestone2_demo:app --host 127.0.0.1 --port 8002
 ```
 
-**Dashboard**
+This launcher replays known extraction responses for the shipped PO-104 and PO-105 source pages, including the deliberate PO-105 misread. PO-103 and other documents use real Ollama. For live extraction on every document, launch `po_intake.api:app` in place of `scripts.milestone2_demo:app`. Model excerpts that fail verification go to review.
+
+In a second PowerShell window, start the dashboard.
 
 ```powershell
-.\.venv\Scripts\python.exe -m streamlit run dashboard.py --server.address 127.0.0.1 --server.port 8501 --server.headless true
+# Run from your own repository root.
+$env:PO_API_URL = 'http://127.0.0.1:8002'
+.\.venv\Scripts\python.exe -m streamlit run dashboard.py --server.address 127.0.0.1 --server.port 8502 --server.headless true
 ```
 
-Open [the dashboard](http://127.0.0.1:8501). [API docs](http://127.0.0.1:8000/docs) are also available.
+Open the [dashboard](http://127.0.0.1:8502) or [API docs](http://127.0.0.1:8002/docs).
 
-## Walk through PO-103
+## Verify Milestone 2
 
-1. Upload [PO-103.pdf](output/pdf/PO-103.pdf) and click **Upload and extract**.
-2. Compare the original and the draft. The customer is `CUST-101`. The PDF orders two `BRG-6204` at RM100.00 and three `BELT-A42` at RM45.50. The **Model output** panel contains the proposed page references and excerpts for staff review.
-3. Check the review box and click **Approve snapshot**. Open **Sales orders** and reopen the stored order after a refresh.
+1. **Clean PO.** Upload [PO-103.pdf](output/pdf/PO-103.pdf) with **Upload and extract**. Check the page 1 evidence for two `BRG-6204` at RM100.00 and three `BELT-A42` at RM45.50. Check the review box, click **Approve snapshot**, and reopen the order under **Sales orders**.
+2. **Misread.** Upload [PO-105-misread.pdf](output/pdf/PO-105-misread.pdf). Its PDF says RM90.00 for `BRG-6204` and the replayed draft says RM100.00. Under **Correct a reading**, choose **Line 1 · Unit price**, enter `RM90.00` for **Value as printed**, leave **Source page** at `1`, use `BRG-6204 Deep groove bearing 2 EA RM90.00` for **Exact source excerpt**, and enter a reason. Click **Save correction**. Edit 2 shows verified RM90.00 and an agreed price of RM100.00, so approval stays blocked. **Original model output** and **Version, receipt, and edit history** retain the original reading.
+3. **V1.** Upload [PO-104-V1.pdf](output/pdf/PO-104-V1.pdf). Confirm the RM90.00 unit price is already verified and approval is blocked by the agreed RM100.00 price. Keep this intake open in one browser tab. Before uploading V2, save its approval payload in a third PowerShell window.
 
-To demonstrate recovery, stop only the API with Ctrl+C. In the API window, point it at an unused port and restart it.
+   ```powershell
+   $demoApi = 'http://127.0.0.1:8002'
+   $v1Receipt = (Invoke-RestMethod "$demoApi/intakes") | Where-Object { $_.filename -eq 'PO-104-V1.pdf' } | Select-Object -First 1
+   $v1 = Invoke-RestMethod "$demoApi/intakes/$($v1Receipt.id)"
+   $v1Approval = @{ snapshot_id = $v1.snapshot.id } | ConvertTo-Json -Compress
+   ```
+
+4. **V2 and stale submission.** In a second browser tab, upload [PO-104-V2.pdf](output/pdf/PO-104-V2.pdf). Check the diff for `BRG-6204` from RM90.00 to RM100.00 and unchanged quantity. Enter a reason and click **Activate revision**. The stale V1 tab already had its approval button disabled because of the price mismatch. To verify server-side stale handling, submit the saved V1 snapshot from PowerShell and expect HTTP 409 with a refresh path.
+
+   ```powershell
+   try {
+     Invoke-RestMethod "$demoApi/intakes/$($v1.id)/approve" -Method Post -ContentType 'application/json' -Body $v1Approval
+   } catch {
+     [int]$_.Exception.Response.StatusCode
+     $_.ErrorDetails.Message
+   }
+   ```
+
+   Refresh the original tab to see V1 marked **Superseded**. In the V2 tab, review and approve the active snapshot. The stored sales order shows V2.
+5. **Resends and equivalent copy.** Upload [the V1 copy](output/pdf/PO-104-V1-copy.pdf) and [the V2 copy](output/pdf/PO-104-V2-copy.pdf). Each shows **Exact resend** with its own intake ID and a link to its original. Upload [the regenerated copy](output/pdf/PO-104-equivalent.pdf) and confirm **Equivalent copy** with the rows reordered and decimal formatting changed. The approved version and sales order number stay the same.
+6. **Post-order and customer context.** Upload [the changed post-order PDF](output/pdf/PO-104-post-order.pdf). The proposed quantity is four, while the booked quantity stays two. The PDF appears as a **Post-order follow-up**. Then upload the V2 copy while selecting **Selangor Fabrication** as the optional customer context. The receipt goes to **Identity review** without a PO or order link. To resolve it, edit **Customer reference** to `CUST-101` using page 1 and `Customer reference: CUST-101` as the excerpt. Check **Confirm this source-supported customer for the intake**, give a reason, and save. It becomes an exact resend with its original context and correction recorded.
+
+The [fixture directory](output/pdf/) is reproducible with `.\.venv\Scripts\python.exe scripts/generate_fixture.py`.
+
+## Migration, failure recovery, and checks
+
+For an existing Milestone 1 database, use its usual `DATABASE_URL` and `PDF_STORAGE` and run `.\.venv\Scripts\python.exe -m alembic upgrade head` and `.\.venv\Scripts\python.exe -m po_intake.seed`. Existing orders keep their order and snapshot IDs. Open migrated drafts can be assessed with **Recheck draft**.
+
+To reproduce extraction failure in the same demo database, first generate a distinct PDF to avoid exact resend reuse.
 
 ```powershell
-$env:OLLAMA_URL = 'http://127.0.0.1:1'
-.\.venv\Scripts\python.exe -m uvicorn po_intake.api:app --host 127.0.0.1 --port 8000
+.\.venv\Scripts\python.exe -c "from pathlib import Path; from scripts.generate_fixture import generate; generate(Path('tmp/PO-106-retry.pdf'), 'PO-106')"
 ```
 
-Upload PO-103 again to create a failed receipt. Leave the dashboard running, stop the API with Ctrl+C, then restore its Ollama connection.
+Stop the API with Ctrl+C, set `$env:OLLAMA_URL = 'http://127.0.0.1:1'`, and restart it with the same launch command. Upload the generated PDF. Stop the API, set `$env:OLLAMA_URL = 'http://127.0.0.1:11434'`, and restart again. Refresh the dashboard, open the failed receipt, and click **Retry extraction**. If a process stopped mid-call, confirm it exited before marking its attempt interrupted.
 
-```powershell
-$env:OLLAMA_URL = 'http://127.0.0.1:11434'
-.\.venv\Scripts\python.exe -m uvicorn po_intake.api:app --host 127.0.0.1 --port 8000
-```
-
-Refresh the dashboard, reopen the failed receipt, and click **Retry extraction**. The original PDF and receipt ID carry over. If PO-103 already produced an order, approval on the second receipt returns a conflict with the existing order number. If an API process stopped mid-extraction, confirm it has exited, open the processing receipt, and mark its attempt interrupted before retrying.
-
-## Checks
-
-Run with the Compose database up. Pytest migrates isolated PostgreSQL schemas and uses temporary PDF storage.
+Run these checks with the Compose database running and `DATABASE_URL` pointing to the migrated demo database. You can use the same API window after stopping Uvicorn with Ctrl+C. Pytest creates isolated schemas and temporary PDF storage.
 
 ```powershell
 docker compose config --quiet
@@ -64,21 +91,19 @@ docker compose config --quiet
 .\.venv\Scripts\python.exe -m pytest -q
 ```
 
-To regenerate the same sample bytes, run `.\.venv\Scripts\python.exe scripts/generate_fixture.py`.
+## Evidence and local settings
 
-## Local settings and model choice
+The verifier folds whitespace and line wrapping in excerpts, preserves punctuation and case, and saves the original character range. It checks labeled PO headers and tables with identifiable SKU, quantity, and unit-price columns. Repeated quotes and rows whose associations or layouts cannot be determined stay in review. The reviewer can select a more specific excerpt from the original page. The business key is the verified customer and the PO number with surrounding whitespace trimmed and case folded. A review decision records the expected active snapshot, and approval rechecks pending revisions and current prices under the PO lock.
 
-PostgreSQL uses the Compose named volume and listens on port 55432 on loopback. PDFs default to `data/pdf`. The API supports `DATABASE_URL`, `PDF_STORAGE`, `OLLAMA_URL`, `OLLAMA_MODEL`, `OLLAMA_TIMEOUT` (seconds), and `DEMO_REVIEWER`. The dashboard uses `PO_API_URL` if the API address changes. PO identity uses the seeded customer reference and the PO number with surrounding whitespace trimmed and case folded. A completed extraction attempt serves as the draft snapshot. The sales order records its approving snapshot, reviewer, and timestamp in the same transaction as its line items.
+PostgreSQL listens on port 55432 on loopback. PDF storage defaults to `data/pdf`. The API accepts `DATABASE_URL`, `PDF_STORAGE`, `OLLAMA_URL`, `OLLAMA_MODEL`, `OLLAMA_TIMEOUT` (seconds), and `DEMO_REVIEWER`. The dashboard uses `PO_API_URL` if the API location changes.
 
-The demo uses Ollama 0.30.11 and `qwen3:8b` (ID `500a1f067a9f`, Q4_K_M). It makes one structured chat call per text extraction with thinking disabled, temperature 0, seed 42, 8,192 context tokens, and a 180-second timeout. The tested Windows laptop has 16 GB RAM and an RTX 5050 Laptop GPU with 8 GB VRAM. [Ollama structured outputs](https://docs.ollama.com/capabilities/structured-outputs) · [Qwen3 model tag](https://ollama.com/library/qwen3:8b)
+The baseline uses Ollama 0.30.11 and `qwen3:8b` (ID `500a1f067a9f`, Q4_K_M), with thinking disabled, temperature 0, seed 42, 8,192 context tokens, and a 180-second timeout. On the tested Windows laptop with an RTX 5050 Laptop GPU and 16 GB RAM, Ollama reported 100% GPU placement and 6.2 GB resident for Qwen3. [Ollama structured outputs](https://docs.ollama.com/capabilities/structured-outputs) · [Qwen3 model tag](https://ollama.com/library/qwen3:8b)
 
-The comparison used two development PDFs generated by the fixture script with distinct PO numbers. DEV-001 uses the two agreed prices. DEV-002 changes the BELT-A42 price to RM40.00. Wall times include model loading when needed.
+The Milestone 1 model comparison used two generated development PDFs. DEV-001 uses the two agreed prices and DEV-002 changes the BELT-A42 price to RM40.00. Both models produced schema-valid responses. Wall times include model loading when needed.
 
-| Model | PDF | Schema valid | Correct labeled values | Literal quotes with token | Row-scoped quantity/price quotes | Wall time |
-| --- | --- | --- | --- | --- | --- | --- |
-| Qwen3 8B | DEV-001 | Yes | 9/9 | 9/9 | 4/4 | 9.39 s |
-| Qwen3 8B | DEV-002 | Yes | 9/9 | 9/9 | 4/4 | 8.70 s |
-| Llama 3.2 | DEV-001 | Yes | 7/9 | 3/9 | 0/4 | 10.82 s |
-| Llama 3.2 | DEV-002 | Yes | 7/9 | 3/9 | 0/4 | 5.19 s |
-
-Qwen3 reproduced both rows and included their SKUs in the quantity and unit-price excerpts. Llama 3.2 returned four rows for each two-row PDF. Ollama reported 100% GPU placement and 6.2 GB resident for Qwen3 during the final smoke run. The dashboard retry took 16.55 seconds across a model switch and returned the two expected lines. Reviewers verify the model's excerpts and row associations against the PDF during approval.
+| Model | PDF | Correct labeled values | Literal quotes with token | Row-scoped quantity/price quotes | Wall time |
+| --- | --- | --- | --- | --- | --- |
+| Qwen3 8B | DEV-001 | 9/9 | 9/9 | 4/4 | 9.39 s |
+| Qwen3 8B | DEV-002 | 9/9 | 9/9 | 4/4 | 8.70 s |
+| Llama 3.2 | DEV-001 | 7/9 | 3/9 | 0/4 | 10.82 s |
+| Llama 3.2 | DEV-002 | 7/9 | 3/9 | 0/4 | 5.19 s |

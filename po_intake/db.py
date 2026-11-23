@@ -66,6 +66,8 @@ class Intake(Base):
     filename: Mapped[str]
     source: Mapped[str] = mapped_column(server_default="upload")
     customer_context: Mapped[str | None] = mapped_column(ForeignKey("customers.reference"))
+    canonical_id: Mapped[int | None] = mapped_column(ForeignKey("intakes.id"), index=True)
+    context_issue: Mapped[str | None]
     state: Mapped[str] = mapped_column(server_default="pending")
     received_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
@@ -92,11 +94,83 @@ class Attempt(Base):
     error: Mapped[str | None]
 
 
+class PurchaseOrder(Base):
+    __tablename__ = "purchase_orders"
+    __table_args__ = (
+        UniqueConstraint("customer", "po_key", name="unique_purchase_order_key"),
+        ForeignKeyConstraint(["id", "active_version_id"], ["po_versions.po_id", "po_versions.id"],
+                             name="fk_po_active_version", use_alter=True),
+        ForeignKeyConstraint(["active_version_id", "active_snapshot_id"],
+                             ["draft_snapshots.version_id", "draft_snapshots.id"],
+                             name="fk_po_active_snapshot", use_alter=True),
+        CheckConstraint("(active_version_id IS NULL) = (active_snapshot_id IS NULL)"),
+        CheckConstraint("status IN ('needs_review', 'ready_for_approval', 'ordered')"),
+    )
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement="ignore_fk")
+    customer: Mapped[str] = mapped_column(ForeignKey("customers.reference"))
+    po_key: Mapped[str]
+    status: Mapped[str]
+    active_version_id: Mapped[int | None]
+    active_snapshot_id: Mapped[int | None]
+
+
+class Version(Base):
+    __tablename__ = "po_versions"
+    __table_args__ = (
+        UniqueConstraint("po_id", "number"),
+        UniqueConstraint("po_id", "id"),
+        UniqueConstraint("intake_id", "id"),
+        CheckConstraint("(po_id IS NULL) = (number IS NULL)"),
+        CheckConstraint("disposition IN ('unlinked', 'active', 'pending', 'equivalent', "
+                        "'superseded', 'dismissed', 'post_order', 'exact_resend')"),
+    )
+    id: Mapped[int] = mapped_column(primary_key=True)
+    intake_id: Mapped[int] = mapped_column(ForeignKey("intakes.id"), unique=True)
+    po_id: Mapped[int | None] = mapped_column(ForeignKey("purchase_orders.id"))
+    number: Mapped[int | None]
+    disposition: Mapped[str]
+
+
+class Snapshot(Base):
+    __tablename__ = "draft_snapshots"
+    __table_args__ = (
+        UniqueConstraint("version_id", "id"),
+        UniqueConstraint("version_id", "edit"),
+        ForeignKeyConstraint(["version_id", "parent_id"], ["draft_snapshots.version_id", "draft_snapshots.id"]),
+    )
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=False)
+    version_id: Mapped[int] = mapped_column(ForeignKey("po_versions.id"))
+    attempt_id: Mapped[int] = mapped_column(ForeignKey("attempts.id"))
+    parent_id: Mapped[int | None]
+    edit: Mapped[int]
+    author: Mapped[str]
+    reason: Mapped[str]
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    draft: Mapped[dict] = mapped_column(JSON)
+    assessment: Mapped[dict | None] = mapped_column(JSON)
+
+
+class ReviewEvent(Base):
+    __tablename__ = "review_events"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    version_id: Mapped[int] = mapped_column(ForeignKey("po_versions.id"), index=True)
+    snapshot_id: Mapped[int | None] = mapped_column(ForeignKey("draft_snapshots.id"))
+    action: Mapped[str]
+    author: Mapped[str]
+    detail: Mapped[dict] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
 class SalesOrder(Base):
     __tablename__ = "sales_orders"
     __table_args__ = (
         UniqueConstraint("customer", "po_key", name="one_order_per_customer_po"),
-        ForeignKeyConstraint(["intake_id", "snapshot_id"], ["attempts.intake_id", "attempts.id"]),
+        ForeignKeyConstraint(["po_id", "version_id"], ["po_versions.po_id", "po_versions.id"],
+                             name="fk_order_po_version"),
+        ForeignKeyConstraint(["intake_id", "version_id"], ["po_versions.intake_id", "po_versions.id"],
+                             name="fk_order_intake_version"),
+        ForeignKeyConstraint(["version_id", "snapshot_id"], ["draft_snapshots.version_id", "draft_snapshots.id"],
+                             name="fk_order_review_snapshot"),
     )
     id: Mapped[int] = mapped_column(primary_key=True)
     customer: Mapped[str] = mapped_column(ForeignKey("customers.reference"))
@@ -104,6 +178,8 @@ class SalesOrder(Base):
     po_number: Mapped[str]
     currency: Mapped[str]
     intake_id: Mapped[int]
+    po_id: Mapped[int] = mapped_column(ForeignKey("purchase_orders.id"), unique=True)
+    version_id: Mapped[int]
     snapshot_id: Mapped[int] = mapped_column(unique=True)
     reviewer: Mapped[str]
     approved_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

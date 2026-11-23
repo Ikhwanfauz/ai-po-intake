@@ -17,7 +17,7 @@ def identity(db, proposal, model, alias_model, reference_attr):
     return getattr(alias, reference_attr) if alias else None
 
 
-def validate(db, draft, pages, customer_context, lock_prices=False):
+def validate(db, draft, pages, customer_context, lock_prices=False, check_prices=True):
     issues = [f"Page {page['page']} has no readable text." for page in pages if not page["text"].strip()]
     customer = identity(db, draft.customer_reference, Customer, CustomerAlias, "customer")
     if customer is None:
@@ -34,6 +34,7 @@ def validate(db, draft, pages, customer_context, lock_prices=False):
         issues.append("The draft has no order lines.")
 
     lines = []
+    price_issues = []
     for position, line in enumerate(draft.lines, start=1):
         prefix = f"Line {position}"
         sku = identity(db, line.sku, SKU, SKUAlias, "sku")
@@ -59,7 +60,7 @@ def validate(db, draft, pages, customer_context, lock_prices=False):
             issues.append(f"{prefix} requires an unambiguous, nonnegative unit price with at most two decimals.")
 
         expected = None
-        if customer and sku and currency == "MYR":
+        if check_prices and customer and customer_context in {None, customer} and sku and currency == "MYR":
             statement = select(Price.amount).where(
                 Price.customer == customer, Price.sku == sku, Price.currency == currency
             )
@@ -67,9 +68,9 @@ def validate(db, draft, pages, customer_context, lock_prices=False):
                 statement = statement.with_for_update(read=True)
             expected = db.scalar(statement)
             if expected is None:
-                issues.append(f"{prefix} has no agreed MYR price.")
+                price_issues.append(f"{prefix} has no agreed MYR price.")
             elif actual is not None and actual != expected:
-                issues.append(f"{prefix} unit price RM{actual:.2f} differs from agreed RM{expected:.2f}.")
+                price_issues.append(f"{prefix} unit price RM{actual:.2f} differs from agreed RM{expected:.2f}.")
         lines.append({
             "sku": sku, "quantity": quantity,
             "unit_price": f"{actual:.2f}" if actual is not None else None,
@@ -77,5 +78,6 @@ def validate(db, draft, pages, customer_context, lock_prices=False):
         })
     return {
         "customer": customer, "po_number": po_number, "currency": currency,
-        "lines": lines, "issues": issues, "checked_at": datetime.now(timezone.utc).isoformat(),
+        "lines": lines, "issues": issues + price_issues, "field_issues": issues,
+        "price_issues": price_issues, "checked_at": datetime.now(timezone.utc).isoformat(),
     }

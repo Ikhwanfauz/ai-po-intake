@@ -10,7 +10,10 @@ from po_intake.db import Customer, CustomerAlias, Price, SKU, SKUAlias, make_eng
 def seed(engine):
     with Session(engine) as db, db.begin():
         for model, rows in (
-            (Customer, [{"reference": "CUST-101", "name": "Kencana Engineering"}]),
+            (Customer, [
+                {"reference": "CUST-101", "name": "Kencana Engineering"},
+                {"reference": "CUST-102", "name": "Selangor Fabrication"},
+            ]),
             (CustomerAlias, [{"alias": "KENCANA", "customer": "CUST-101"}]),
             (SKU, [
                 {"code": "BRG-6204", "description": "Deep groove bearing"},
@@ -20,6 +23,8 @@ def seed(engine):
             (Price, [
                 {"customer": "CUST-101", "sku": "BRG-6204", "currency": "MYR", "amount": Decimal("100.00")},
                 {"customer": "CUST-101", "sku": "BELT-A42", "currency": "MYR", "amount": Decimal("45.50")},
+                {"customer": "CUST-102", "sku": "BRG-6204", "currency": "MYR", "amount": Decimal("100.00")},
+                {"customer": "CUST-102", "sku": "BELT-A42", "currency": "MYR", "amount": Decimal("45.50")},
             ]),
         ):
             db.execute(insert(model).values(rows).on_conflict_do_nothing())

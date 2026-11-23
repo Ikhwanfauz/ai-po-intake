@@ -10,23 +10,33 @@ TIMEOUT = float(os.getenv("OLLAMA_TIMEOUT", "180")) + 30
 st.set_page_config(page_title="Meridian PO Intake", layout="wide")
 
 
-def request(path, method="GET", **kwargs):
+def feedback(message, issues=()):
+    st.error(message)
+    for issue in issues:
+        st.warning(issue)
+
+
+def request(path, method="GET", capture=False, **kwargs):
+    def report(message, issues=()):
+        if capture:
+            st.session_state["review_feedback"] = (message, issues)
+        else:
+            feedback(message, issues)
+
     try:
         response = httpx.request(method, f"{API.rstrip('/')}{path}", timeout=TIMEOUT, trust_env=False, **kwargs)
         if response.is_error:
             detail = response.json().get("detail", response.reason_phrase)
             if isinstance(detail, dict):
-                st.error(detail["message"])
-                for issue in detail.get("issues", []):
-                    st.warning(issue)
+                report(detail["message"], detail.get("issues", []))
             else:
-                st.error(str(detail))
+                report(str(detail))
             return None
         return response
     except httpx.RequestError:
-        st.error("The local API is unavailable or the request timed out. Refresh to check the saved status.")
+        report("The local API is unavailable or the request timed out. Refresh to check the saved status.")
     except ValueError:
-        st.error("The local API returned an unexpected response.")
+        report("The local API returned an unexpected response.")
     return None
 
 
@@ -60,8 +70,131 @@ def show_order(order_id):
         return
     st.subheader(order["number"])
     st.write(f"Customer PO **{order['po_number']}** · {order['customer']} · {order['currency']}")
-    st.caption(f"Approved by {order['reviewer']} · Snapshot {order['snapshot_id']}")
+    st.caption(f"Approved by {order['reviewer']} · V{order['version']} · Snapshot {order['snapshot_id']}")
     st.dataframe(order["lines"], hide_index=True, width="stretch")
+
+
+def submit_review(path, payload, widget_fields=None):
+    # Callbacks submit the IDs shown before the rerun fetches more recent review data.
+    if widget_fields:
+        payload = {**payload, **{
+            field: st.session_state[key] for field, key in widget_fields.items()
+        }}
+    request(path, "POST", json=payload, capture=True)
+
+
+def link_to_receipt(label, intake_id):
+    st.link_button(label, f"?intake={intake_id}")
+
+
+def field_rows(assessment):
+    def row(label, entry, expected=None):
+        return {"Field": label, "Value": entry["value"], "Agreed MYR": expected, "Page": entry["page"],
+                "Verified excerpt": entry.get("excerpt"),
+                "Evidence": entry["issue"] if entry["status"] != "verified" else "Verified"}
+
+    evidence = assessment["evidence"]
+    rows = [row(label, evidence["fields"][name]) for name, label in (
+        ("po_number", "PO number"), ("customer_reference", "Customer reference"), ("currency", "Currency"),
+    )]
+    for index, (line, checked) in enumerate(zip(evidence["lines"], assessment["validation"]["lines"]), 1):
+        for name, entry in line.items():
+            expected = checked["expected_price"] if name == "unit_price" else None
+            rows.append(row(f"Line {index} · {name.replace('_', ' ')}", entry, expected))
+    return rows
+
+
+DISPOSITION = {
+    "unlinked": "Identity review",
+    "active": "Active",
+    "pending": "Pending revision",
+    "equivalent": "Equivalent copy",
+    "superseded": "Superseded",
+    "dismissed": "Dismissed",
+    "post_order": "Post-order follow-up",
+}
+
+
+def document_name(entry):
+    return f"V{entry['number']}" if entry["number"] else "Unlinked document"
+
+
+def show_history(intake):
+    with st.expander("Version, receipt, and edit history"):
+        for entry in intake["history"]:
+            st.write(f"**{document_name(entry)} · {DISPOSITION[entry['disposition']]}**")
+            link_to_receipt(f"Open {entry['filename']}", entry["intake_id"])
+            for receipt in entry["receipts"]:
+                kind = "Exact resend" if receipt["canonical_intake_id"] else "Original delivery"
+                st.caption(f"Intake #{receipt['id']} · {kind} · {receipt['filename']} · {receipt['received_at']}")
+            for edit in entry["edits"]:
+                st.caption(f"Edit {edit['edit']} · Snapshot {edit['id']} · {edit['author']} · {edit['created_at']}")
+                st.text(edit["reason"])
+        if intake["receipt_edit_history"]:
+            st.write("Review before this receipt was linked")
+            for edit in intake["receipt_edit_history"]:
+                st.caption(f"Edit {edit['edit']} · Snapshot {edit['id']} · {edit['author']}")
+                st.text(edit["reason"])
+        for event in intake["activity"]:
+            if event["action"] != "validation":
+                st.caption(f"{event['action'].replace('_', ' ').capitalize()} · {event['author']} · {event['created_at']}")
+                st.json(event["detail"], expanded=False)
+
+
+def compare(intake):
+    comparison = intake["comparison"]
+    if not comparison:
+        return
+    st.subheader(f"Compare with active V{intake['po']['active_version']}")
+    link_to_receipt("Open active document", comparison["active_intake_id"])
+    st.text(f"Currency  {comparison['active_currency']} → {comparison['candidate_currency']}")
+    rows = []
+    for line in comparison["lines"]:
+        old, new = line["active"] or {}, line["candidate"] or {}
+        rows.append({"SKU": line["sku"], "Active qty": old.get("quantity"), "Selected qty": new.get("quantity"),
+                     "Active unit price": old.get("unit_price"), "Selected unit price": new.get("unit_price"),
+                     "Comparison": line["status"].capitalize()})
+    st.dataframe(rows, hide_index=True, width="stretch")
+    if any(row["Comparison"] == "Unmatched" for row in rows):
+        st.warning("Unmatched rows need manual comparison before activation.")
+
+
+def correct_draft(path, snapshot, attempt, payload, allow_context):
+    with st.expander("Correct a reading"):
+        draft = snapshot["draft"]
+        choices = [
+            ("PO number", "po_number", None), ("Customer reference", "customer_reference", None),
+            ("Currency", "currency", None),
+        ]
+        for number in range(1, len(draft["lines"]) + 1):
+            choices.extend((f"Line {number} · {label}", field, number) for label, field in (
+                ("SKU", "sku"), ("Quantity", "quantity"), ("Unit price", "unit_price"),
+                ("Unit", "unit"), ("Remove this line", "remove_line"),
+            ))
+        choices.append(("Add a line · SKU", "sku", len(draft["lines"]) + 1))
+        _, field, line = st.selectbox("Field to correct", choices, format_func=lambda item: item[0],
+                                     key=f"field-{snapshot['id']}")
+        source = draft if line is None else draft["lines"][line - 1] if line <= len(draft["lines"]) else {}
+        current = source.get(field) or {}
+        if isinstance(current, str):
+            current = {"value": current}
+        key = f"edit-{snapshot['id']}-{field}-{line}"
+        with st.form(key):
+            keys = {name: f"{key}-{name}" for name in ("value", "page", "excerpt", "reason")}
+            st.text_input("Value as printed", value=current.get("value") or "", key=keys["value"],
+                          disabled=field == "remove_line")
+            st.number_input("Source page", min_value=1, value=current.get("page") or 1, key=keys["page"])
+            st.text_area("Exact source excerpt", value=current.get("excerpt") or "", key=keys["excerpt"])
+            st.text_input("Reason for correction", key=keys["reason"])
+            if field == "customer_reference" and allow_context:
+                keys["confirm_customer"] = f"{key}-confirm"
+                st.checkbox("Confirm this source-supported customer for the intake", key=keys["confirm_customer"])
+            st.form_submit_button("Save correction", on_click=submit_review,
+                                  args=(f"{path}/correct", {**payload, "field": field, "line": line}, keys))
+        with st.expander("Extracted PDF page text"):
+            for page in attempt["pages"] or []:
+                st.caption(f"Page {page['page']}")
+                st.code(page["text"], language=None)
 
 
 def review(intake):
@@ -69,8 +202,15 @@ def review(intake):
     st.subheader("Extraction and review")
     st.write(f"Intake **#{intake['id']}** · **{intake['state'].title()}**")
     attempt = intake["attempt"]
+    canonical = intake["canonical_intake_id"]
+    if canonical:
+        st.info(f"Exact resend · Original intake #{canonical}")
+        link_to_receipt("Open original receipt", canonical)
     if attempt:
-        st.caption(f"Attempt #{attempt['id']} · {attempt['started_at']} · {attempt['settings']['model']}")
+        source = attempt["settings"].get("source") or attempt["settings"].get("model", "Ollama")
+        st.caption(f"Attempt #{attempt['id']} · {attempt['started_at']} · {source}")
+    if intake["context_issue"] and not intake["snapshot"]:
+        st.warning(intake["context_issue"])
     if intake["state"] in {"pending", "failed"}:
         if attempt and attempt["error"]:
             st.error(attempt["error"])
@@ -85,40 +225,63 @@ def review(intake):
                 st.rerun()
         return
 
-    draft = attempt["draft"]
-    validation = attempt["validation"]
-    st.write(
-        f"PO **{draft['po_number']['value'] or '—'}** · "
-        f"Customer **{draft['customer_reference']['value'] or '—'}** · "
-        f"Currency **{draft['currency']['value'] or '—'}**"
-    )
-    rows = [
-        {
-            "SKU": line["sku"]["value"], "Quantity": line["quantity"]["value"],
-            "Unit": line["unit"], "Unit price": line["unit_price"]["value"],
-            "Agreed MYR price": checked["expected_price"],
-        }
-        for line, checked in zip(draft["lines"], validation["lines"])
-    ]
-    if rows:
-        st.dataframe(rows, hide_index=True, width="stretch")
-    for issue in validation["issues"]:
-        st.warning(issue)
-    with st.expander("Model output"):
-        st.caption("Check proposed page references and excerpts against the original PDF.")
-        st.json(draft)
-    if intake["order"]:
-        st.success(f"Order created · {intake['order']['number']}")
-        show_order(intake["order"]["id"])
+    po, version, snapshot = intake["po"], intake["version"], intake["snapshot"]
+    assessment = snapshot["assessment"]
+    disposition = version["disposition"]
+    active = po["active_snapshot_id"] if po else None
+    payload = {"snapshot_id": snapshot["id"], "active_snapshot_id": active}
+    st.subheader(f"{document_name(version)} · {DISPOSITION[disposition]}")
+    st.caption(f"Edit {snapshot['edit']} · Snapshot {snapshot['id']}")
+    if assessment:
+        st.dataframe(field_rows(assessment), hide_index=True, width="stretch")
+        for issue in assessment["issues"]:
+            st.warning(issue)
+    elif intake["order"]:
+        st.info("Approved during Milestone 1. The original approved snapshot is available below.")
     else:
+        st.info("Check the migrated extraction before approving it.")
+    if intake["identity_options"]:
+        options = intake["identity_options"]
+        if options["customers"] or options["po_numbers"]:
+            st.text("Customer candidates: " + ", ".join(options["customers"]))
+            st.text("PO number candidates: " + ", ".join(options["po_numbers"]))
+        if options["orders"]:
+            st.text("Matching records to review: " + ", ".join(item["po_key"] for item in options["orders"]))
+    if po and po["pending_versions"]:
+        st.warning("Pending revisions block approval: " + ", ".join(f"V{n}" for n in po["pending_versions"]))
+    compare(intake)
+    with st.expander("Original model output"):
+        if attempt["raw"]:
+            st.code(attempt["raw"], language="json", wrap_lines=True)
+        else:
+            st.json(attempt["draft"])
+    show_history(intake)
+    if intake["order"]:
+        st.success(f"Confirmed order · {intake['order']['number']}")
+        show_order(intake["order"]["id"])
+        if disposition != "post_order":
+            return
+    if canonical:
+        return
+    if disposition in {"unlinked", "active", "pending", "post_order"}:
+        correct_draft(path, snapshot, attempt, payload, po is None)
+        if assessment is None or assessment["issues"]:
+            st.button("Recheck draft", on_click=submit_review,
+                      args=(f"{path}/validate", {"snapshot_id": snapshot["id"]}))
+    if disposition == "active":
         checked = st.checkbox("I checked the customer, PO number, and all lines against the PDF.",
-                              key=f"checked-{attempt['id']}")
-        if st.button("Approve snapshot", type="primary", disabled=bool(validation["issues"]) or not checked):
-            if call(f"{path}/approve", "POST", json={"snapshot_id": attempt["id"]}) is not None:
-                st.rerun()
-        if validation["issues"] and st.button("Recheck agreed prices"):
-            if call(f"{path}/validate", "POST", json={"snapshot_id": attempt["id"]}) is not None:
-                st.rerun()
+                              key=f"checked-{snapshot['id']}")
+        st.button("Approve snapshot", type="primary",
+                  disabled=not checked or not assessment or bool(assessment["issues"] or po["pending_versions"]),
+                  on_click=submit_review, args=(f"{path}/approve", {"snapshot_id": snapshot["id"]}))
+    if disposition == "pending":
+        reason = f"revision-reason-{snapshot['id']}"
+        with st.form(f"revision-{snapshot['id']}"):
+            st.text_input("Reason for revision decision", key=reason)
+            st.form_submit_button("Activate revision", type="primary", on_click=submit_review,
+                                  args=(f"{path}/activate", payload, {"reason": reason}))
+            st.form_submit_button("Dismiss revision", on_click=submit_review,
+                                  args=(f"{path}/dismiss", payload, {"reason": reason}))
 
 
 def main():
@@ -144,10 +307,15 @@ def main():
                 if receipt is not None:
                     st.session_state["intake_select"] = receipt["id"]
                     st.query_params["intake"] = receipt["id"]
-                    process(receipt["id"])
+                    if receipt["state"] == "pending":
+                        process(receipt["id"])
         intakes = call("/intakes")
         if intakes:
-            labels = {row["id"]: f"#{row['id']} · {row['filename']} · {row['state'].title()}" for row in intakes}
+            labels = {
+                row["id"]: f"#{row['id']} · {row['filename']} · "
+                f"{'Exact resend' if row['canonical_intake_id'] else row['state'].title()}"
+                for row in intakes
+            }
             selected = st.query_params.get("intake", "")
             default = next((i for i, key in enumerate(labels) if str(key) == selected), 0)
             if "intake_select" not in st.session_state:
@@ -159,6 +327,9 @@ def main():
                     st.query_params["intake"] = intake_id
             with right:
                 st.button("Refresh")
+            message = st.session_state.pop("review_feedback", None)
+            if message:
+                feedback(*message)
             intake = call(f"/intakes/{intake_id}")
             if intake is not None:
                 pdf_col, draft_col = st.columns([1, 1])

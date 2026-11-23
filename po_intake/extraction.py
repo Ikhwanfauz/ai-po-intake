@@ -3,6 +3,7 @@ import json
 import os
 import tempfile
 from contextlib import contextmanager
+from dataclasses import dataclass
 from pathlib import Path
 from threading import Lock
 
@@ -16,6 +17,12 @@ MAX_PAGES = 20
 MAX_TEXT_CHARS = 12_000
 MODEL_OPTIONS = {"temperature": 0, "num_ctx": 8192, "seed": 42}
 PDF_LOCK = Lock()
+
+
+@dataclass(frozen=True)
+class ExtractionOutput:
+    raw: str
+    source: str
 
 
 class Proposal(BaseModel):
