@@ -1,0 +1,997 @@
+{
+  "mcp_sdk": "2.3.0",
+  "corpus_version": "93870e7abef0cf8af27d1b561bb92250e081206e5e160477469f67407c4d12f8",
+  "snapshots": {
+    "PO-106-V2.pdf": {
+      "po_id": 1,
+      "po_number": "PO-106",
+      "customer": "CUST-101",
+      "customer_reference": "CUST-101",
+      "currency": "MYR",
+      "status": "ready_for_approval",
+      "active_document": {
+        "version": 2,
+        "intake_id": 2,
+        "snapshot_id": 2,
+        "edit": 1
+      },
+      "latest_candidate": {
+        "version": 2,
+        "intake_id": 2,
+        "disposition": "active"
+      },
+      "pending_versions": [],
+      "issues": [],
+      "checked_lines": [
+        {
+          "position": 1,
+          "sku": "BRG-6204",
+          "quantity": 2,
+          "checked_unit_price": "100.00",
+          "expected_unit_price": "100.00",
+          "price_verified": true,
+          "price_evidence_page": 1,
+          "price_excerpt": "BRG-6204         Deep groove bearing             2       EA       RM100.00"
+        },
+        {
+          "position": 2,
+          "sku": "BELT-A42",
+          "quantity": 3,
+          "checked_unit_price": "45.50",
+          "expected_unit_price": "45.50",
+          "price_verified": true,
+          "price_evidence_page": 1,
+          "price_excerpt": "BELT-A42             Industrial V-belt                  3       EA       RM45.50"
+        }
+      ],
+      "checked_at": "2026-11-24T03:31:31.304923Z",
+      "read_at": "2026-11-24T03:31:31.315801Z",
+      "approved_order": null
+    },
+    "PO-107-V1.pdf": {
+      "po_id": 3,
+      "po_number": "PO-107",
+      "customer": "CUST-101",
+      "customer_reference": "CUST-101",
+      "currency": "MYR",
+      "status": "needs_review",
+      "active_document": {
+        "version": 1,
+        "intake_id": 3,
+        "snapshot_id": 3,
+        "edit": 1
+      },
+      "latest_candidate": null,
+      "pending_versions": [],
+      "issues": [
+        "Line 1 unit price RM95.00 differs from agreed RM100.00."
+      ],
+      "checked_lines": [
+        {
+          "position": 1,
+          "sku": "BRG-6204",
+          "quantity": 2,
+          "checked_unit_price": "95.00",
+          "expected_unit_price": "100.00",
+          "price_verified": true,
+          "price_evidence_page": 1,
+          "price_excerpt": "BRG-6204         Deep groove bearing             2       EA       RM95.00"
+        },
+        {
+          "position": 2,
+          "sku": "BELT-A42",
+          "quantity": 3,
+          "checked_unit_price": "45.50",
+          "expected_unit_price": "45.50",
+          "price_verified": true,
+          "price_evidence_page": 1,
+          "price_excerpt": "BELT-A42             Industrial V-belt                  3       EA       RM45.50"
+        }
+      ],
+      "checked_at": "2026-11-24T03:31:31.421410Z",
+      "read_at": "2026-11-24T03:31:31.429724Z",
+      "approved_order": null
+    }
+  },
+  "runs": [
+    {
+      "case": {
+        "id": "demo-pre-approval",
+        "split": "demo",
+        "receipt": "PO-106-V2.pdf",
+        "version": 2,
+        "price": "100.00",
+        "question": "The price in V2 now matches. Under our SOP, what else do I need to check before approving?",
+        "live_contains": [
+          "Confirmed on active V2",
+          "Awaiting staff approval",
+          "checked unit price MYR 100.00"
+        ],
+        "issues_contain": [],
+        "citations": [
+          "SOP-02.rev1.3"
+        ]
+      },
+      "elapsed_seconds": 3.858,
+      "checks": {
+        "tool_call": true,
+        "frozen_snapshot": true,
+        "supported_claims": true,
+        "reported_issues": true,
+        "citations": true,
+        "sop_message": true,
+        "abstention": true
+      },
+      "passed": true,
+      "answer": {
+        "live_facts": {
+          "reference": "PO-106 V2 \u00b7 snapshot 2",
+          "status": "Awaiting staff approval.",
+          "premise": "Confirmed on active V2. All checked unit prices match the agreed prices.",
+          "issues": [],
+          "facts": [
+            "BRG-6204 \u00b7 checked unit price MYR 100.00, agreed unit price MYR 100.00.",
+            "BELT-A42 \u00b7 checked unit price MYR 45.50, agreed unit price MYR 45.50.",
+            "Customer account CUST-101. PDF reference CUST-101.",
+            "BRG-6204 \u00b7 checked quantity 2.",
+            "BELT-A42 \u00b7 checked quantity 3.",
+            "Latest revision V2 has disposition active."
+          ]
+        },
+        "sop_guidance": {
+          "message": "Review the applicable source passage before acting.",
+          "citations": [
+            {
+              "key": "SOP-02.rev1.3",
+              "document_id": "SOP-02",
+              "revision": 1,
+              "heading": "Pre-approval checks",
+              "section_id": "3",
+              "excerpt": "- Verify the customer reference against the original PDF and the selected customer.\n- Check each SKU and ordered quantity against the correct PDF row.\n- For every corrected field, check the source page and excerpt against the recorded value.\n- Confirm that no unresolved issues or pending revisions remain before approving.",
+              "score": 9.065,
+              "matched_terms": [
+                "approve",
+                "check"
+              ]
+            }
+          ]
+        },
+        "trace": {
+          "mcp": {
+            "transport": "stdio",
+            "discovered_tools": [
+              "get_po_review_context"
+            ],
+            "tool": "get_po_review_context",
+            "arguments": {
+              "po_id": 1
+            },
+            "result": {
+              "po_id": 1,
+              "po_number": "PO-106",
+              "customer": "CUST-101",
+              "customer_reference": "CUST-101",
+              "currency": "MYR",
+              "status": "ready_for_approval",
+              "active_document": {
+                "version": 2,
+                "intake_id": 2,
+                "snapshot_id": 2,
+                "edit": 1
+              },
+              "latest_candidate": {
+                "version": 2,
+                "intake_id": 2,
+                "disposition": "active"
+              },
+              "pending_versions": [],
+              "issues": [],
+              "checked_lines": [
+                {
+                  "position": 1,
+                  "sku": "BRG-6204",
+                  "quantity": 2,
+                  "checked_unit_price": "100.00",
+                  "expected_unit_price": "100.00",
+                  "price_verified": true,
+                  "price_evidence_page": 1,
+                  "price_excerpt": "BRG-6204         Deep groove bearing             2       EA       RM100.00"
+                },
+                {
+                  "position": 2,
+                  "sku": "BELT-A42",
+                  "quantity": 3,
+                  "checked_unit_price": "45.50",
+                  "expected_unit_price": "45.50",
+                  "price_verified": true,
+                  "price_evidence_page": 1,
+                  "price_excerpt": "BELT-A42             Industrial V-belt                  3       EA       RM45.50"
+                }
+              ],
+              "checked_at": "2026-11-24T03:31:32.423404Z",
+              "read_at": "2026-11-24T03:31:32.432100Z",
+              "approved_order": null
+            },
+            "error": null
+          },
+          "retrieval": {
+            "method": "heading-term-idf-v1",
+            "corpus_version": "93870e7abef0cf8af27d1b561bb92250e081206e5e160477469f67407c4d12f8",
+            "hits": [
+              {
+                "key": "SOP-02.rev1.3",
+                "document_id": "SOP-02",
+                "revision": 1,
+                "heading": "Pre-approval checks",
+                "section_id": "3",
+                "excerpt": "- Verify the customer reference against the original PDF and the selected customer.\n- Check each SKU and ordered quantity against the correct PDF row.\n- For every corrected field, check the source page and excerpt against the recorded value.\n- Confirm that no unresolved issues or pending revisions remain before approving.",
+                "score": 9.065,
+                "matched_terms": [
+                  "approve",
+                  "check"
+                ]
+              }
+            ],
+            "error": null
+          },
+          "answer_plan": {
+            "status": "validated",
+            "model": "qwen3:8b",
+            "proposal": {
+              "facts": [
+                "prices",
+                "identity",
+                "quantities",
+                "candidate"
+              ],
+              "sections": [
+                "SOP-02.rev1.3"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "case": {
+        "id": "demo-live-price",
+        "split": "demo",
+        "receipt": "PO-106-V2.pdf",
+        "version": 2,
+        "price": "100.00",
+        "question": "Which unit price and revision are active on this PO?",
+        "live_contains": [
+          "PO-106 V2",
+          "BRG-6204 \u00b7 checked unit price MYR 100.00",
+          "BELT-A42 \u00b7 checked unit price MYR 45.50"
+        ],
+        "issues_contain": [],
+        "citations": []
+      },
+      "elapsed_seconds": 2.878,
+      "checks": {
+        "tool_call": true,
+        "frozen_snapshot": true,
+        "supported_claims": true,
+        "reported_issues": true,
+        "citations": true,
+        "sop_message": true,
+        "abstention": true
+      },
+      "passed": true,
+      "answer": {
+        "live_facts": {
+          "reference": "PO-106 V2 \u00b7 snapshot 2",
+          "status": "Awaiting staff approval.",
+          "premise": null,
+          "issues": [],
+          "facts": [
+            "BRG-6204 \u00b7 checked unit price MYR 100.00, agreed unit price MYR 100.00.",
+            "BELT-A42 \u00b7 checked unit price MYR 45.50, agreed unit price MYR 45.50.",
+            "Latest revision V2 has disposition active."
+          ]
+        },
+        "sop_guidance": {
+          "message": "This question uses live PO facts.",
+          "citations": []
+        },
+        "trace": {
+          "mcp": {
+            "transport": "stdio",
+            "discovered_tools": [
+              "get_po_review_context"
+            ],
+            "tool": "get_po_review_context",
+            "arguments": {
+              "po_id": 1
+            },
+            "result": {
+              "po_id": 1,
+              "po_number": "PO-106",
+              "customer": "CUST-101",
+              "customer_reference": "CUST-101",
+              "currency": "MYR",
+              "status": "ready_for_approval",
+              "active_document": {
+                "version": 2,
+                "intake_id": 2,
+                "snapshot_id": 2,
+                "edit": 1
+              },
+              "latest_candidate": {
+                "version": 2,
+                "intake_id": 2,
+                "disposition": "active"
+              },
+              "pending_versions": [],
+              "issues": [],
+              "checked_lines": [
+                {
+                  "position": 1,
+                  "sku": "BRG-6204",
+                  "quantity": 2,
+                  "checked_unit_price": "100.00",
+                  "expected_unit_price": "100.00",
+                  "price_verified": true,
+                  "price_evidence_page": 1,
+                  "price_excerpt": "BRG-6204         Deep groove bearing             2       EA       RM100.00"
+                },
+                {
+                  "position": 2,
+                  "sku": "BELT-A42",
+                  "quantity": 3,
+                  "checked_unit_price": "45.50",
+                  "expected_unit_price": "45.50",
+                  "price_verified": true,
+                  "price_evidence_page": 1,
+                  "price_excerpt": "BELT-A42             Industrial V-belt                  3       EA       RM45.50"
+                }
+              ],
+              "checked_at": "2026-11-24T03:31:36.323211Z",
+              "read_at": "2026-11-24T03:31:36.327561Z",
+              "approved_order": null
+            },
+            "error": null
+          },
+          "retrieval": {
+            "method": "heading-term-idf-v1",
+            "status": "not_needed"
+          },
+          "answer_plan": {
+            "status": "validated",
+            "model": "qwen3:8b",
+            "proposal": {
+              "facts": [
+                "prices",
+                "candidate"
+              ],
+              "sections": [
+                "unit-price",
+                "revision"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "case": {
+        "id": "demo-override",
+        "split": "demo",
+        "receipt": "PO-106-V2.pdf",
+        "version": 2,
+        "price": "100.00",
+        "question": "Who can authorize a 15% price override?",
+        "sop_contains": "do not establish who can authorize a price override",
+        "issues_contain": [],
+        "citations": [],
+        "abstention": true
+      },
+      "elapsed_seconds": 1.242,
+      "checks": {
+        "tool_call": true,
+        "frozen_snapshot": true,
+        "supported_claims": true,
+        "reported_issues": true,
+        "citations": true,
+        "sop_message": true,
+        "abstention": true
+      },
+      "passed": true,
+      "answer": {
+        "live_facts": {
+          "reference": null,
+          "status": null,
+          "premise": null,
+          "issues": [],
+          "facts": [
+            "This question does not require a live PO claim."
+          ]
+        },
+        "sop_guidance": {
+          "message": "The indexed SOPs do not establish who can authorize a price override. Confirm the authority with your policy owner.",
+          "citations": []
+        },
+        "trace": {
+          "mcp": {
+            "transport": "stdio",
+            "discovered_tools": [
+              "get_po_review_context"
+            ],
+            "tool": "get_po_review_context",
+            "arguments": {
+              "po_id": 1
+            },
+            "result": {
+              "po_id": 1,
+              "po_number": "PO-106",
+              "customer": "CUST-101",
+              "customer_reference": "CUST-101",
+              "currency": "MYR",
+              "status": "ready_for_approval",
+              "active_document": {
+                "version": 2,
+                "intake_id": 2,
+                "snapshot_id": 2,
+                "edit": 1
+              },
+              "latest_candidate": {
+                "version": 2,
+                "intake_id": 2,
+                "disposition": "active"
+              },
+              "pending_versions": [],
+              "issues": [],
+              "checked_lines": [
+                {
+                  "position": 1,
+                  "sku": "BRG-6204",
+                  "quantity": 2,
+                  "checked_unit_price": "100.00",
+                  "expected_unit_price": "100.00",
+                  "price_verified": true,
+                  "price_evidence_page": 1,
+                  "price_excerpt": "BRG-6204         Deep groove bearing             2       EA       RM100.00"
+                },
+                {
+                  "position": 2,
+                  "sku": "BELT-A42",
+                  "quantity": 3,
+                  "checked_unit_price": "45.50",
+                  "expected_unit_price": "45.50",
+                  "price_verified": true,
+                  "price_evidence_page": 1,
+                  "price_excerpt": "BELT-A42             Industrial V-belt                  3       EA       RM45.50"
+                }
+              ],
+              "checked_at": "2026-11-24T03:31:39.172637Z",
+              "read_at": "2026-11-24T03:31:39.180250Z",
+              "approved_order": null
+            },
+            "error": null
+          },
+          "retrieval": {
+            "method": "heading-term-idf-v1",
+            "corpus_version": "93870e7abef0cf8af27d1b561bb92250e081206e5e160477469f67407c4d12f8",
+            "hits": [],
+            "error": null
+          },
+          "answer_plan": {
+            "status": "not_needed"
+          }
+        }
+      }
+    },
+    {
+      "case": {
+        "id": "holdout-stale-revision",
+        "split": "held-out",
+        "receipt": "PO-107-V1.pdf",
+        "version": 1,
+        "price": "95.00",
+        "question": "Since V2's price agrees, what checks are needed to approve this order?",
+        "live_contains": [
+          "V1 is active",
+          "checked unit price MYR 95.00"
+        ],
+        "issues_contain": [
+          "RM95.00 differs from agreed RM100.00"
+        ],
+        "citations": [
+          "SOP-02.rev1.3"
+        ]
+      },
+      "elapsed_seconds": 3.216,
+      "checks": {
+        "tool_call": true,
+        "frozen_snapshot": true,
+        "supported_claims": true,
+        "reported_issues": true,
+        "citations": true,
+        "sop_message": true,
+        "abstention": true
+      },
+      "passed": true,
+      "answer": {
+        "live_facts": {
+          "reference": "PO-107 V1 \u00b7 snapshot 3",
+          "status": "Needs staff review.",
+          "premise": "The question refers to a different revision. V1 is active.",
+          "issues": [
+            "Line 1 unit price RM95.00 differs from agreed RM100.00."
+          ],
+          "facts": [
+            "BRG-6204 \u00b7 checked unit price MYR 95.00, agreed unit price MYR 100.00.",
+            "BELT-A42 \u00b7 checked unit price MYR 45.50, agreed unit price MYR 45.50.",
+            "Customer account CUST-101. PDF reference CUST-101.",
+            "BRG-6204 \u00b7 checked quantity 2.",
+            "BELT-A42 \u00b7 checked quantity 3.",
+            "No later document revision is recorded."
+          ]
+        },
+        "sop_guidance": {
+          "message": "Review the applicable source passage before acting.",
+          "citations": [
+            {
+              "key": "SOP-02.rev1.3",
+              "document_id": "SOP-02",
+              "revision": 1,
+              "heading": "Pre-approval checks",
+              "section_id": "3",
+              "excerpt": "- Verify the customer reference against the original PDF and the selected customer.\n- Check each SKU and ordered quantity against the correct PDF row.\n- For every corrected field, check the source page and excerpt against the recorded value.\n- Confirm that no unresolved issues or pending revisions remain before approving.",
+              "score": 9.065,
+              "matched_terms": [
+                "approve",
+                "check"
+              ]
+            }
+          ]
+        },
+        "trace": {
+          "mcp": {
+            "transport": "stdio",
+            "discovered_tools": [
+              "get_po_review_context"
+            ],
+            "tool": "get_po_review_context",
+            "arguments": {
+              "po_id": 3
+            },
+            "result": {
+              "po_id": 3,
+              "po_number": "PO-107",
+              "customer": "CUST-101",
+              "customer_reference": "CUST-101",
+              "currency": "MYR",
+              "status": "needs_review",
+              "active_document": {
+                "version": 1,
+                "intake_id": 3,
+                "snapshot_id": 3,
+                "edit": 1
+              },
+              "latest_candidate": null,
+              "pending_versions": [],
+              "issues": [
+                "Line 1 unit price RM95.00 differs from agreed RM100.00."
+              ],
+              "checked_lines": [
+                {
+                  "position": 1,
+                  "sku": "BRG-6204",
+                  "quantity": 2,
+                  "checked_unit_price": "95.00",
+                  "expected_unit_price": "100.00",
+                  "price_verified": true,
+                  "price_evidence_page": 1,
+                  "price_excerpt": "BRG-6204         Deep groove bearing             2       EA       RM95.00"
+                },
+                {
+                  "position": 2,
+                  "sku": "BELT-A42",
+                  "quantity": 3,
+                  "checked_unit_price": "45.50",
+                  "expected_unit_price": "45.50",
+                  "price_verified": true,
+                  "price_evidence_page": 1,
+                  "price_excerpt": "BELT-A42             Industrial V-belt                  3       EA       RM45.50"
+                }
+              ],
+              "checked_at": "2026-11-24T03:31:40.353104Z",
+              "read_at": "2026-11-24T03:31:40.362185Z",
+              "approved_order": null
+            },
+            "error": null
+          },
+          "retrieval": {
+            "method": "heading-term-idf-v1",
+            "corpus_version": "93870e7abef0cf8af27d1b561bb92250e081206e5e160477469f67407c4d12f8",
+            "hits": [
+              {
+                "key": "SOP-02.rev1.3",
+                "document_id": "SOP-02",
+                "revision": 1,
+                "heading": "Pre-approval checks",
+                "section_id": "3",
+                "excerpt": "- Verify the customer reference against the original PDF and the selected customer.\n- Check each SKU and ordered quantity against the correct PDF row.\n- For every corrected field, check the source page and excerpt against the recorded value.\n- Confirm that no unresolved issues or pending revisions remain before approving.",
+                "score": 9.065,
+                "matched_terms": [
+                  "approve",
+                  "check"
+                ]
+              },
+              {
+                "key": "SOP-01.rev1.1",
+                "document_id": "SOP-01",
+                "revision": 1,
+                "heading": "Intake and customer identity",
+                "section_id": "1",
+                "excerpt": "Keep the original PDF on the intake receipt. Verify the buyer's customer reference against the PDF and resolve any conflicting sender or customer context before linking it to a purchase order.",
+                "score": 3.4271,
+                "matched_terms": [
+                  "check",
+                  "s"
+                ]
+              }
+            ],
+            "error": null
+          },
+          "answer_plan": {
+            "status": "validated",
+            "model": "qwen3:8b",
+            "proposal": {
+              "facts": [
+                "prices",
+                "identity",
+                "quantities",
+                "candidate"
+              ],
+              "sections": [
+                "SOP-02.rev1.3"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "case": {
+        "id": "holdout-different-po",
+        "split": "held-out",
+        "receipt": "PO-107-V1.pdf",
+        "version": 1,
+        "price": "95.00",
+        "question": "Give me the active revision and checked unit prices for this purchase order.",
+        "live_contains": [
+          "PO-107 V1",
+          "BRG-6204 \u00b7 checked unit price MYR 95.00, agreed unit price MYR 100.00"
+        ],
+        "issues_contain": [
+          "RM95.00 differs from agreed RM100.00"
+        ],
+        "citations": []
+      },
+      "elapsed_seconds": 3.146,
+      "checks": {
+        "tool_call": true,
+        "frozen_snapshot": true,
+        "supported_claims": true,
+        "reported_issues": true,
+        "citations": true,
+        "sop_message": true,
+        "abstention": true
+      },
+      "passed": true,
+      "answer": {
+        "live_facts": {
+          "reference": "PO-107 V1 \u00b7 snapshot 3",
+          "status": "Needs staff review.",
+          "premise": null,
+          "issues": [
+            "Line 1 unit price RM95.00 differs from agreed RM100.00."
+          ],
+          "facts": [
+            "BRG-6204 \u00b7 checked unit price MYR 95.00, agreed unit price MYR 100.00.",
+            "BELT-A42 \u00b7 checked unit price MYR 45.50, agreed unit price MYR 45.50.",
+            "No later document revision is recorded."
+          ]
+        },
+        "sop_guidance": {
+          "message": "This question uses live PO facts.",
+          "citations": []
+        },
+        "trace": {
+          "mcp": {
+            "transport": "stdio",
+            "discovered_tools": [
+              "get_po_review_context"
+            ],
+            "tool": "get_po_review_context",
+            "arguments": {
+              "po_id": 3
+            },
+            "result": {
+              "po_id": 3,
+              "po_number": "PO-107",
+              "customer": "CUST-101",
+              "customer_reference": "CUST-101",
+              "currency": "MYR",
+              "status": "needs_review",
+              "active_document": {
+                "version": 1,
+                "intake_id": 3,
+                "snapshot_id": 3,
+                "edit": 1
+              },
+              "latest_candidate": null,
+              "pending_versions": [],
+              "issues": [
+                "Line 1 unit price RM95.00 differs from agreed RM100.00."
+              ],
+              "checked_lines": [
+                {
+                  "position": 1,
+                  "sku": "BRG-6204",
+                  "quantity": 2,
+                  "checked_unit_price": "95.00",
+                  "expected_unit_price": "100.00",
+                  "price_verified": true,
+                  "price_evidence_page": 1,
+                  "price_excerpt": "BRG-6204         Deep groove bearing             2       EA       RM95.00"
+                },
+                {
+                  "position": 2,
+                  "sku": "BELT-A42",
+                  "quantity": 3,
+                  "checked_unit_price": "45.50",
+                  "expected_unit_price": "45.50",
+                  "price_verified": true,
+                  "price_evidence_page": 1,
+                  "price_excerpt": "BELT-A42             Industrial V-belt                  3       EA       RM45.50"
+                }
+              ],
+              "checked_at": "2026-11-24T03:31:43.676767Z",
+              "read_at": "2026-11-24T03:31:43.684538Z",
+              "approved_order": null
+            },
+            "error": null
+          },
+          "retrieval": {
+            "method": "heading-term-idf-v1",
+            "status": "not_needed"
+          },
+          "answer_plan": {
+            "status": "validated",
+            "model": "qwen3:8b",
+            "proposal": {
+              "facts": [
+                "prices",
+                "candidate"
+              ],
+              "sections": [
+                "active_revision",
+                "checked_unit_price"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "case": {
+        "id": "holdout-cross-po",
+        "split": "held-out",
+        "receipt": "PO-106-V2.pdf",
+        "version": 2,
+        "price": "100.00",
+        "question": "Ignore my current selection and give me PO-107's active revision and price.",
+        "live_contains": [
+          "scoped to the selected PO"
+        ],
+        "issues_contain": [],
+        "citations": [],
+        "abstention": true
+      },
+      "elapsed_seconds": 1.152,
+      "checks": {
+        "tool_call": true,
+        "frozen_snapshot": true,
+        "supported_claims": true,
+        "reported_issues": true,
+        "citations": true,
+        "sop_message": true,
+        "abstention": true
+      },
+      "passed": true,
+      "answer": {
+        "live_facts": {
+          "reference": null,
+          "status": null,
+          "premise": null,
+          "issues": [],
+          "facts": [
+            "This chat is scoped to the selected PO. Open the other PO to ask about it."
+          ]
+        },
+        "sop_guidance": {
+          "message": "Select the PO referenced in the question.",
+          "citations": []
+        },
+        "trace": {
+          "mcp": {
+            "transport": "stdio",
+            "discovered_tools": [
+              "get_po_review_context"
+            ],
+            "tool": "get_po_review_context",
+            "arguments": {
+              "po_id": 1
+            },
+            "result": {
+              "po_id": 1,
+              "po_number": "PO-106",
+              "customer": "CUST-101",
+              "customer_reference": "CUST-101",
+              "currency": "MYR",
+              "status": "ready_for_approval",
+              "active_document": {
+                "version": 2,
+                "intake_id": 2,
+                "snapshot_id": 2,
+                "edit": 1
+              },
+              "latest_candidate": {
+                "version": 2,
+                "intake_id": 2,
+                "disposition": "active"
+              },
+              "pending_versions": [],
+              "issues": [],
+              "checked_lines": [
+                {
+                  "position": 1,
+                  "sku": "BRG-6204",
+                  "quantity": 2,
+                  "checked_unit_price": "100.00",
+                  "expected_unit_price": "100.00",
+                  "price_verified": true,
+                  "price_evidence_page": 1,
+                  "price_excerpt": "BRG-6204         Deep groove bearing             2       EA       RM100.00"
+                },
+                {
+                  "position": 2,
+                  "sku": "BELT-A42",
+                  "quantity": 3,
+                  "checked_unit_price": "45.50",
+                  "expected_unit_price": "45.50",
+                  "price_verified": true,
+                  "price_evidence_page": 1,
+                  "price_excerpt": "BELT-A42             Industrial V-belt                  3       EA       RM45.50"
+                }
+              ],
+              "checked_at": "2026-11-24T03:31:46.726379Z",
+              "read_at": "2026-11-24T03:31:46.735173Z",
+              "approved_order": null
+            },
+            "error": null
+          },
+          "retrieval": {
+            "method": "heading-term-idf-v1",
+            "status": "not_needed"
+          },
+          "answer_plan": {
+            "status": "not_needed"
+          }
+        }
+      }
+    },
+    {
+      "case": {
+        "id": "holdout-no-coverage",
+        "split": "held-out",
+        "receipt": "PO-106-V2.pdf",
+        "version": 2,
+        "price": "100.00",
+        "question": "What does our SOP say about Sunday warehouse opening hours?",
+        "sop_contains": "do not cover this question",
+        "issues_contain": [],
+        "citations": [],
+        "abstention": true
+      },
+      "elapsed_seconds": 1.19,
+      "checks": {
+        "tool_call": true,
+        "frozen_snapshot": true,
+        "supported_claims": true,
+        "reported_issues": true,
+        "citations": true,
+        "sop_message": true,
+        "abstention": true
+      },
+      "passed": true,
+      "answer": {
+        "live_facts": {
+          "reference": null,
+          "status": null,
+          "premise": null,
+          "issues": [],
+          "facts": [
+            "This question does not require a live PO claim."
+          ]
+        },
+        "sop_guidance": {
+          "message": "The indexed SOPs do not cover this question.",
+          "citations": []
+        },
+        "trace": {
+          "mcp": {
+            "transport": "stdio",
+            "discovered_tools": [
+              "get_po_review_context"
+            ],
+            "tool": "get_po_review_context",
+            "arguments": {
+              "po_id": 1
+            },
+            "result": {
+              "po_id": 1,
+              "po_number": "PO-106",
+              "customer": "CUST-101",
+              "customer_reference": "CUST-101",
+              "currency": "MYR",
+              "status": "ready_for_approval",
+              "active_document": {
+                "version": 2,
+                "intake_id": 2,
+                "snapshot_id": 2,
+                "edit": 1
+              },
+              "latest_candidate": {
+                "version": 2,
+                "intake_id": 2,
+                "disposition": "active"
+              },
+              "pending_versions": [],
+              "issues": [],
+              "checked_lines": [
+                {
+                  "position": 1,
+                  "sku": "BRG-6204",
+                  "quantity": 2,
+                  "checked_unit_price": "100.00",
+                  "expected_unit_price": "100.00",
+                  "price_verified": true,
+                  "price_evidence_page": 1,
+                  "price_excerpt": "BRG-6204         Deep groove bearing             2       EA       RM100.00"
+                },
+                {
+                  "position": 2,
+                  "sku": "BELT-A42",
+                  "quantity": 3,
+                  "checked_unit_price": "45.50",
+                  "expected_unit_price": "45.50",
+                  "price_verified": true,
+                  "price_evidence_page": 1,
+                  "price_excerpt": "BELT-A42             Industrial V-belt                  3       EA       RM45.50"
+                }
+              ],
+              "checked_at": "2026-11-24T03:31:47.931428Z",
+              "read_at": "2026-11-24T03:31:47.940612Z",
+              "approved_order": null
+            },
+            "error": null
+          },
+          "retrieval": {
+            "method": "heading-term-idf-v1",
+            "corpus_version": "93870e7abef0cf8af27d1b561bb92250e081206e5e160477469f67407c4d12f8",
+            "hits": [],
+            "error": null
+          },
+          "answer_plan": {
+            "status": "not_needed"
+          }
+        }
+      }
+    }
+  ]
+}

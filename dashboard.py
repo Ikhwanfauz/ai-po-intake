@@ -7,6 +7,7 @@ import streamlit as st
 API = os.getenv("PO_API_URL", "http://127.0.0.1:8000")
 TIMEOUT = float(os.getenv("OLLAMA_TIMEOUT", "180")) + 30
 GRAPH_TIMEOUT = TIMEOUT + 3 * float(os.getenv("PO_GRAPH_TIMEOUT", "45"))
+CHAT_TIMEOUT = float(os.getenv("PO_MCP_TIMEOUT", "12")) + float(os.getenv("PO_CHAT_TIMEOUT", "20")) + 5
 STAFF_KEY = os.getenv("PO_STAFF_KEY", "")
 FOREGROUND = os.getenv("PO_FOREGROUND_EXTRACTION", "").strip().lower() in {"1", "true"}
 
@@ -416,6 +417,47 @@ def review(intake):
                                   args=(f"{path}/dismiss", payload, {"reason": reason}))
 
 
+def show_po_chat(po):
+    st.subheader("PO review chat")
+    selection = (po["id"], po["active_snapshot_id"])
+    if st.session_state.get("po_chat_selection") != selection:
+        st.session_state["po_chat_selection"] = selection
+        st.session_state["po_chat_turns"] = []
+
+    turns = st.session_state["po_chat_turns"]
+    question = st.chat_input("Ask about this PO or the review SOP", max_chars=1000)
+    if question and question.strip():
+        with st.spinner("Reading the active PO and SOP…"):
+            answer = call(f"/pos/{po['id']}/chat", "POST", json={"question": question}, timeout=CHAT_TIMEOUT)
+        if answer is not None:
+            turns.append((question, answer))
+
+    for question, answer in turns:
+        with st.chat_message("user"):
+            st.text(question)
+        with st.chat_message("assistant"):
+            live = answer["live_facts"]
+            st.markdown("**Live PO facts**")
+            if live["reference"]:
+                st.text(live["reference"])
+            for value in [live["status"], live["premise"], *live["facts"]]:
+                if value:
+                    st.text(value)
+            if live["reference"] and not live["issues"]:
+                st.text("The current backend check found no unresolved issues.")
+            for issue in live["issues"]:
+                st.warning(issue)
+            st.markdown("**SOP guidance**")
+            guidance = answer["sop_guidance"]
+            st.text(guidance["message"])
+            for index, source in enumerate(guidance["citations"]):
+                label = f"{source['document_id']} rev {source['revision']} §{source['section_id']} · {source['heading']}"
+                with st.expander(label, expanded=index == 0):
+                    st.text(source["excerpt"])
+            with st.expander("MCP tool trace"):
+                st.json(answer["trace"]["mcp"])
+
+
 def main():
     st.title("Meridian PO Intake")
     customer_list = call("/customers")
@@ -470,6 +512,8 @@ def main():
                 with draft_col:
                     review(intake)
                     show_notifications(intake_id)
+                if intake["po"]:
+                    show_po_chat(intake["po"])
         elif intakes == []:
             st.info("Upload a purchase order PDF to start a review.")
 

@@ -1,0 +1,41 @@
+[
+  {
+    "id": "demo-pre-approval", "split": "demo", "receipt": "PO-106-V2.pdf", "version": 2, "price": "100.00",
+    "question": "The price in V2 now matches. Under our SOP, what else do I need to check before approving?",
+    "live_contains": ["Confirmed on active V2", "Awaiting staff approval", "checked unit price MYR 100.00"],
+    "issues_contain": [], "citations": ["SOP-02.rev1.3"]
+  },
+  {
+    "id": "demo-live-price", "split": "demo", "receipt": "PO-106-V2.pdf", "version": 2, "price": "100.00",
+    "question": "Which unit price and revision are active on this PO?",
+    "live_contains": ["PO-106 V2", "BRG-6204 · checked unit price MYR 100.00", "BELT-A42 · checked unit price MYR 45.50"],
+    "issues_contain": [], "citations": []
+  },
+  {
+    "id": "demo-override", "split": "demo", "receipt": "PO-106-V2.pdf", "version": 2, "price": "100.00",
+    "question": "Who can authorize a 15% price override?",
+    "sop_contains": "do not establish who can authorize a price override", "issues_contain": [], "citations": [], "abstention": true
+  },
+  {
+    "id": "holdout-stale-revision", "split": "held-out", "receipt": "PO-107-V1.pdf", "version": 1, "price": "95.00",
+    "question": "Since V2's price agrees, what checks are needed to approve this order?",
+    "live_contains": ["V1 is active", "checked unit price MYR 95.00"],
+    "issues_contain": ["RM95.00 differs from agreed RM100.00"], "citations": ["SOP-02.rev1.3"]
+  },
+  {
+    "id": "holdout-different-po", "split": "held-out", "receipt": "PO-107-V1.pdf", "version": 1, "price": "95.00",
+    "question": "Give me the active revision and checked unit prices for this purchase order.",
+    "live_contains": ["PO-107 V1", "BRG-6204 · checked unit price MYR 95.00, agreed unit price MYR 100.00"],
+    "issues_contain": ["RM95.00 differs from agreed RM100.00"], "citations": []
+  },
+  {
+    "id": "holdout-cross-po", "split": "held-out", "receipt": "PO-106-V2.pdf", "version": 2, "price": "100.00",
+    "question": "Ignore my current selection and give me PO-107's active revision and price.",
+    "live_contains": ["scoped to the selected PO"], "issues_contain": [], "citations": [], "abstention": true
+  },
+  {
+    "id": "holdout-no-coverage", "split": "held-out", "receipt": "PO-106-V2.pdf", "version": 2, "price": "100.00",
+    "question": "What does our SOP say about Sunday warehouse opening hours?",
+    "sop_contains": "do not cover this question", "issues_contain": [], "citations": [], "abstention": true
+  }
+]

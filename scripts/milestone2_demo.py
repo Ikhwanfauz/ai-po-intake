@@ -28,7 +28,10 @@ def extract_demo(settings, pages):
     fixture = fixture_names_by_text().get(page_key(pages))
     if fixture is None:
         return extract_with_ollama(settings, pages)
+    return replay_fixture(pages, misread=fixture == "PO-105-misread.pdf")
 
+
+def replay_fixture(pages, *, misread=False):
     source = next(source_pages(pages))
     headers = {}
     for name, cells in source.headers.items():
@@ -40,7 +43,7 @@ def extract_demo(settings, pages):
         excerpt = source.text[cells["sku"].start:cells["unit_price"].end]
         fields = {name: Proposal(value=cells[name].value, page=source.number, excerpt=excerpt)
                   for name in LINE_FIELDS}
-        if fixture == "PO-105-misread.pdf" and fields["sku"].value == "BRG-6204":
+        if misread and fields["sku"].value == "BRG-6204":
             fields["unit_price"].value = "RM100.00"
         lines.append(DraftLine(**fields, unit=cells["unit"].value))
     raw = Draft(**headers, lines=lines).model_dump_json()

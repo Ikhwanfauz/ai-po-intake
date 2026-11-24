@@ -28,6 +28,10 @@ class Settings:
     model: str = field(default_factory=lambda: os.getenv("OLLAMA_MODEL", "qwen3:8b"))
     timeout: float = field(default_factory=lambda: float(os.getenv("OLLAMA_TIMEOUT", "180")))
     graph_timeout: float = field(default_factory=lambda: float(os.getenv("PO_GRAPH_TIMEOUT", "45")))
+    mcp_api_url: str = field(default_factory=lambda: os.getenv("PO_MCP_API_URL", "http://127.0.0.1:8000"))
+    mcp_timeout: float = field(default_factory=lambda: float(os.getenv("PO_MCP_TIMEOUT", "12")))
+    chat_timeout: float = field(default_factory=lambda: float(os.getenv("PO_CHAT_TIMEOUT", "20")))
+    sop_index_path: Path = field(default_factory=lambda: Path(os.getenv("PO_SOP_INDEX", "data/sop-index.json")))
     graph_auto: bool = field(default_factory=lambda: os.getenv("PO_GRAPH_AUTO", "true").strip().lower() in {"true", "1"})
     reviewer: str = field(default_factory=lambda: os.getenv("DEMO_REVIEWER", "Meridian Demo Reviewer"))
     foreground: bool = field(default_factory=lambda: env_flag("PO_FOREGROUND_EXTRACTION"))
@@ -51,7 +55,7 @@ class Settings:
 
     def __post_init__(self):
         if min(self.extraction_max_attempts, self.notification_max_attempts, self.notification_lease,
-               self.timeout, self.graph_timeout) <= 0:
+               self.timeout, self.graph_timeout, self.mcp_timeout, self.chat_timeout) <= 0:
             raise ValueError("Timeouts, notification leases, and attempt limits must be positive.")
         if min(self.extraction_lease, self.extraction_backoff, self.notification_backoff) < 0:
             raise ValueError("Extraction lease and retry delays must be nonnegative.")

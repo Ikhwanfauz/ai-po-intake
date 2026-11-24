@@ -1,16 +1,20 @@
+from datetime import datetime, timezone
 from hmac import compare_digest
 from decimal import Decimal
 from typing import Literal
 
+import anyio
 import pymupdf
 from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, UploadFile
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, Field, ValidationError
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
 from po_intake import intake as intake_service
 from po_intake import jobs, notifications, review, worker
+from po_intake.chat import ChatQuestion, answer_question
+from po_intake.chat_context import ActiveDocument, ApprovedOrder, Candidate, CheckedLine, ReviewContext
 from po_intake.config import Settings
 from po_intake.db import (
     Attempt, Customer, Document, ExtractionJob, GraphRun, Intake, OrderLine, PurchaseOrder, ReviewEvent, SalesOrder,
@@ -19,6 +23,7 @@ from po_intake.db import (
 from po_intake.evidence import HEADERS, quote_location, supported_correction
 from po_intake.extraction import MAX_PDF_BYTES, Draft, DraftLine, Proposal, extract_with_ollama, ollama_structured, open_pdf
 from po_intake.extraction_graph import graph_issues, run_graph
+from po_intake.mcp_client import read_selected_po
 
 
 class Approve(BaseModel):
@@ -133,7 +138,8 @@ def graph_run_view(run):
     }
 
 
-def create_app(settings=None, extractor=extract_with_ollama, graph_chat=ollama_structured):
+def create_app(settings=None, extractor=extract_with_ollama, graph_chat=ollama_structured,
+               chat_model=ollama_structured):
     settings = settings or Settings()
     engine = make_engine(settings.database_url)
     app = FastAPI(title="Meridian PO Intake")
@@ -156,6 +162,57 @@ def create_app(settings=None, extractor=extract_with_ollama, graph_chat=ollama_s
     @app.get("/health")
     def health():
         return {"status": "ok"}
+
+    @app.get("/pos/{po_id}/review-context")
+    def review_context(po_id: int) -> ReviewContext:
+        with engine.connect().execution_options(isolation_level="REPEATABLE READ") as connection, Session(connection) as db:
+            db.execute(text("SET TRANSACTION READ ONLY"))
+            po = db.get(PurchaseOrder, po_id)
+            if po is None:
+                raise HTTPException(404, "PO not found.")
+            if not po.active_version_id or not po.active_snapshot_id:
+                raise HTTPException(409, "The PO has no active review snapshot.")
+            version = db.get(Version, po.active_version_id)
+            snapshot = db.get(Snapshot, po.active_snapshot_id)
+            assessment = assess_snapshot(db, get_intake(db, version.intake_id), snapshot, po)
+            validation = assessment["validation"]
+            pending = review.blockers(db, po)
+            issues = list(assessment["issues"])
+            if pending:
+                issues.append("Pending document revisions: " + ", ".join(f"V{number}" for number in pending) + ".")
+            candidate = db.scalar(select(Version).where(Version.po_id == po.id, Version.number > 1)
+                                  .order_by(Version.number.desc()).limit(1))
+            order = db.scalar(select(SalesOrder).where(SalesOrder.po_id == po.id))
+            lines = []
+            for position, (line, evidence) in enumerate(zip(validation["lines"], assessment["evidence"]["lines"]), 1):
+                price = evidence["unit_price"]
+                lines.append(CheckedLine(
+                    position=position, sku=line["sku"] if evidence["sku"]["status"] == "verified" else None,
+                    quantity=line["quantity"] if evidence["quantity"]["status"] == "verified" else None,
+                    checked_unit_price=line["unit_price"], expected_unit_price=line["expected_price"],
+                    price_verified=price["status"] == "verified",
+                    price_evidence_page=price["page"] if price["status"] == "verified" else None,
+                    price_excerpt=price.get("excerpt"),
+                ))
+            reference = assessment["evidence"]["fields"]["customer_reference"]
+            return ReviewContext(
+                po_id=po.id, po_number=validation["po_number"] or po.po_key, customer=po.customer,
+                customer_reference=reference["value"] if reference["status"] == "verified" else None,
+                currency=validation["currency"], status=po.status,
+                active_document=ActiveDocument(version=version.number, intake_id=version.intake_id,
+                                               snapshot_id=snapshot.id, edit=snapshot.edit),
+                latest_candidate=Candidate(version=candidate.number, intake_id=candidate.intake_id,
+                                           disposition=candidate.disposition) if candidate else None,
+                pending_versions=pending, issues=issues, checked_lines=lines,
+                checked_at=validation["checked_at"], read_at=datetime.now(timezone.utc),
+                approved_order=ApprovedOrder(number=order_summary(order)["number"],
+                                             snapshot_id=order.snapshot_id) if order else None,
+            )
+
+    @app.post("/pos/{po_id}/chat")
+    async def po_chat(po_id: int, request: ChatQuestion):
+        context, trace = await read_selected_po(settings, po_id)
+        return await anyio.to_thread.run_sync(answer_question, settings, request.question, context, trace, chat_model)
 
     def original(db, intake_id):
         intake = get_intake(db, intake_id)
