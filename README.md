@@ -2,11 +2,24 @@
 
 Sales operations teams receive purchase orders as PDFs and must check what the customer actually ordered, whether the prices match the agreement, and which revision can be booked. A resend or a corrected attachment can lead to a duplicate order or an approval against an outdated price. Meridian turns each PDF into a reviewable draft with source evidence and records which revision a staff member approved.
 
+![PO-104 V1 PDF beside the review panel showing the RM90.00 unit price, the agreed RM100.00, and the Superseded status](docs/screenshots/po-104-price-mismatch.png)
+
+*PO-104 V1 shows RM90.00 against the agreed RM100.00. V1 is marked Superseded after V2 activation.*
+
 ## Walkthrough · PO-104 from PDF to sales order
 
 1. **Catch the price mismatch.** Upload V1 and V2 in that order, then open the V1 row in the newest-first **Intake receipts** list. The PDF really says **RM90.00** for bearing `BRG-6204`. The agreed price is **RM100.00**, so approval is blocked even though the extraction is correct. [PO-104 V1 PDF](output/pdf/PO-104-V1.pdf)
 2. **Review and approve the correction.** Open the V2 row from the same list. The comparison shows the unit price changing to **RM100.00** and the quantity staying at two. Review the source, enter a reason, click **Activate revision**, then complete the review and click **Approve snapshot**. V1 becomes **Superseded** and the resulting sales order references V2. [PO-104 V2 PDF](output/pdf/PO-104-V2.pdf)
+
+   ![Intake receipts list with the original PO-104 V2 receipt selected and a newer V2 row marked Exact resend](docs/screenshots/intake-receipts.png)
+
+   *Staff can open the original V2 receipt and identify its Exact resend in the list.*
+
 3. **Read the approved order in chat.** In **PO review chat**, ask “Which unit price and revision are active on this PO?” The chatbot reads the active snapshot and linked sales order through a local, read-only MCP tool. The answer cites PO-104 V2, shows the RM100.00 price, and reports the sales order number. Expand **MCP tool trace** to see the selected PO, snapshot ID, checked and agreed prices, and approval status.
+
+   ![PO review chat showing approved PO-104 V2, sales order SO-000001, and the expanded get_po_review_context tool trace](docs/screenshots/po-review-chat-mcp.png)
+
+   *PO-104 V2 is approved as `SO-000001`. The expanded MCP trace shows the `get_po_review_context` call.*
 
 The list shows filename, source, received time, and status. Upload the V2 copy to see **Exact resend** in the list. Open that row to find the link to the original. The same sales order remains on record. [V2 copy PDF](output/pdf/PO-104-V2-copy.pdf)
 
