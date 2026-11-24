@@ -1,8 +1,10 @@
 # Meridian PO Intake
 
-The local dashboard stores purchase order PDFs, checks draft evidence and agreed prices, and turns a reviewed active snapshot into a PostgreSQL sales order. Milestone 2 adds source-backed corrections, exact resend receipts, and document revision decisions.
+The local dashboard stores purchase order PDFs, checks draft evidence and agreed prices, and turns a reviewed active snapshot into a PostgreSQL sales order.
 
-## Start the Windows demo
+Milestone 3 adds an extraction worker and n8n integration for Gmail intake, Telegram review alerts, and Gmail confirmations. Follow the [Milestone 3 Windows guide](docs/milestone-3.md) for startup, credentials, the PO-104 walkthrough, and credential-free checks.
+
+## Start the Milestone 2 Windows demo
 
 Start Docker Desktop and the Ollama Windows app. Use PowerShell from the project folder. This workspace already has a virtual environment. On a fresh checkout, create it with `python -m venv .venv` using a working Python 3.12 installation.
 
@@ -17,6 +19,7 @@ docker compose exec -T db createdb -U po_demo $demoDb
 $env:DATABASE_URL = "postgresql+psycopg://po_demo:po_demo@127.0.0.1:55432/$demoDb"
 $env:PDF_STORAGE = "data/$demoDb/pdf"
 $env:OLLAMA_URL = 'http://127.0.0.1:11434'
+$env:PO_FOREGROUND_EXTRACTION = 'true'
 .\.venv\Scripts\python.exe -m alembic upgrade head
 .\.venv\Scripts\python.exe -m po_intake.seed
 ollama list
@@ -35,6 +38,7 @@ In a second PowerShell window, start the dashboard.
 ```powershell
 # Run from your own repository root.
 $env:PO_API_URL = 'http://127.0.0.1:8002'
+$env:PO_FOREGROUND_EXTRACTION = 'true'
 .\.venv\Scripts\python.exe -m streamlit run dashboard.py --server.address 127.0.0.1 --server.port 8502 --server.headless true
 ```
 

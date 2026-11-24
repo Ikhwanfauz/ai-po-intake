@@ -1,0 +1,302 @@
+{
+  "name": "Milestone 3 - Notification delivery",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "seconds",
+              "secondsInterval": 15
+            }
+          ]
+        }
+      },
+      "id": "7ad40000-0b03-4e73-9dda-000000000012",
+      "name": "Poll schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "7ad40000-0b03-4e73-9dda-000000000013",
+      "name": "Manual run",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        140
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "method": "POST",
+        "url": "http://host.docker.internal:8003/integrations/notifications/claim",
+        "options": {
+          "timeout": 20000
+        }
+      },
+      "id": "7ad40000-0b03-4e73-9dda-000000000014",
+      "name": "Claim notification",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        230,
+        70
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const delivery = $input.first().json.delivery;\nreturn delivery && Date.parse(delivery.deadline) > Date.now() ? [{ json: delivery }] : [];"
+      },
+      "id": "7ad40000-0b03-4e73-9dda-000000000015",
+      "name": "Dispatch claim",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        460,
+        70
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d9c60935-8ebe-482c-a497-4e539cabbd1f",
+              "leftValue": "={{ $json.channel }}",
+              "rightValue": "telegram",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "7ad40000-0b03-4e73-9dda-000000000016",
+      "name": "Is Telegram?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        690,
+        70
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendMessage",
+        "chatId": "={{ $json.destination }}",
+        "text": "={{ $json.payload.text }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "7ad40000-0b03-4e73-9dda-000000000017",
+      "name": "Send Telegram alert",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        920,
+        0
+      ],
+      "retryOnFail": false,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $json.destination }}",
+        "subject": "={{ $json.payload.subject }}",
+        "emailType": "text",
+        "message": "={{ $json.payload.text }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "7ad40000-0b03-4e73-9dda-000000000018",
+      "name": "Send Gmail confirmation",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        920,
+        160
+      ],
+      "retryOnFail": false,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const delivery = $('Dispatch claim').first().json;\nconst response = $input.first().json;\nconst isTelegram = delivery.channel === 'telegram';\nconst receipt = isTelegram ? response.result?.message_id ?? response.message_id : response.id;\nif (!response.error && receipt !== null && receipt !== undefined && String(receipt)) {\n  return [{ json: { outcome: 'sent', provider_receipt: String(receipt) } }];\n}\nconst error = typeof response.error === 'object' && response.error !== null ? response.error : response;\nconst rejection = error.response?.data ?? error.response?.body ?? error.cause?.response?.data\n  ?? error.cause?.response?.body ?? (isTelegram && response.ok === false ? response : null);\nconst explicitCode = isTelegram && rejection?.ok === false ? rejection.error_code\n  : (!isTelegram ? rejection?.error?.code : null);\n// Native nodes can flatten the status into a message. Only recognize exact rejection messages.\nconst message = typeof response.error === 'string' ? response.error.replace(/\\s+\\(item \\d+\\)$/, '') : '';\nconst standard = new Map([\n  ['Bad request - please check your parameters', 400],\n  ['Authorization failed - please check your credentials', 401],\n  ['Forbidden - perhaps check your credentials?', 403],\n  ['The resource you are requesting could not be found', 404],\n  ['The service is receiving too many requests from you', 429],\n]);\nconst telegram = new Map([\n  ['Unauthorized', 401],\n  ['Bad Request: chat not found', 400],\n  ['Forbidden: bot was blocked by the user', 403],\n  [\"Forbidden: bot can't initiate conversation with a user\", 403],\n]);\nconst nativeCode = isTelegram && /^Too Many Requests: retry after \\d+$/.test(message) ? 429\n  : (isTelegram ? telegram.get(message) ?? standard.get(message) : standard.get(message));\nconst code = explicitCode ?? nativeCode;\nif ([400, 401, 403, 404, 413, 422, 429].includes(code)) {\n  return [{ json: { outcome: 'failed', retryable: code === 429, error: 'Provider rejected the request (HTTP ' + code + ').' } }];\n}\nreturn [{ json: { outcome: 'unknown', error: 'No conclusive acknowledgement or rejection was available.' } }];"
+      },
+      "id": "7ad40000-0b03-4e73-9dda-000000000019",
+      "name": "Classify provider result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1170,
+        70
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "method": "POST",
+        "url": "={{ 'http://host.docker.internal:8003/integrations/notifications/attempts/' + $('Dispatch claim').first().json.attempt_id + '/result' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "timeout": 20000
+        }
+      },
+      "id": "7ad40000-0b03-4e73-9dda-000000000020",
+      "name": "Report result to FastAPI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1410,
+        70
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000
+    }
+  ],
+  "connections": {
+    "Manual run": {
+      "main": [
+        [
+          {
+            "node": "Claim notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Poll schedule": {
+      "main": [
+        [
+          {
+            "node": "Claim notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claim notification": {
+      "main": [
+        [
+          {
+            "node": "Dispatch claim",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dispatch claim": {
+      "main": [
+        [
+          {
+            "node": "Is Telegram?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Telegram?": {
+      "main": [
+        [
+          {
+            "node": "Send Telegram alert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Gmail confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Telegram alert": {
+      "main": [
+        [
+          {
+            "node": "Classify provider result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Classify provider result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Gmail confirmation": {
+      "main": [
+        [
+          {
+            "node": "Classify provider result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Classify provider result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classify provider result": {
+      "main": [
+        [
+          {
+            "node": "Report result to FastAPI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "executionTimeout": 120,
+    "saveDataSuccessExecution": "none"
+  },
+  "pinData": {},
+  "tags": []
+}

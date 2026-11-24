@@ -20,7 +20,7 @@ def postgres_schema(tmp_path, monkeypatch):
         connection.execute(text(f"CREATE SCHEMA {name}"))
     url = make_url(Settings().database_url).update_query_dict({"options": f"-csearch_path={name}"})
     monkeypatch.setenv("DATABASE_URL", url.render_as_string(hide_password=False))
-    settings = replace(Settings(), storage=tmp_path)
+    settings = replace(Settings(), storage=tmp_path, foreground=True)
     engine = make_engine(settings.database_url)
     try:
         yield settings, engine

@@ -6,6 +6,8 @@ import streamlit as st
 
 API = os.getenv("PO_API_URL", "http://127.0.0.1:8000")
 TIMEOUT = float(os.getenv("OLLAMA_TIMEOUT", "180")) + 30
+STAFF_KEY = os.getenv("PO_STAFF_KEY", "")
+FOREGROUND = os.getenv("PO_FOREGROUND_EXTRACTION", "").strip().lower() in {"1", "true"}
 
 st.set_page_config(page_title="Meridian PO Intake", layout="wide")
 
@@ -24,7 +26,9 @@ def request(path, method="GET", capture=False, **kwargs):
             feedback(message, issues)
 
     try:
-        response = httpx.request(method, f"{API.rstrip('/')}{path}", timeout=TIMEOUT, trust_env=False, **kwargs)
+        headers = {"X-Staff-Key": STAFF_KEY} if STAFF_KEY else None
+        response = httpx.request(method, f"{API.rstrip('/')}{path}", headers=headers,
+                                 timeout=TIMEOUT, trust_env=False, **kwargs)
         if response.is_error:
             detail = response.json().get("detail", response.reason_phrase)
             if isinstance(detail, dict):
@@ -46,7 +50,7 @@ def call(path, method="GET", **kwargs):
 
 
 def process(intake_id):
-    with st.spinner("Extracting from the stored PDF with Ollama…"):
+    with st.spinner("Extracting from the stored PDF…" if FOREGROUND else "Queuing extraction…"):
         return call(f"/intakes/{intake_id}/process", "POST")
 
 
@@ -61,7 +65,13 @@ def original_pdf(intake):
     preview = first if page == 1 else request(f"{path}/pages/{page}")
     if preview is not None:
         st.image(preview.content, width="stretch")
-    st.link_button("Download original PDF", f"{API}{path}/pdf")
+    if STAFF_KEY:
+        original = request(f"{path}/pdf")
+        if original is not None:
+            st.download_button("Download original PDF", original.content, file_name=intake["filename"],
+                               mime="application/pdf", on_click="ignore")
+    else:
+        st.link_button("Download original PDF", f"{API}{path}/pdf")
 
 
 def show_order(order_id):
@@ -197,10 +207,57 @@ def correct_draft(path, snapshot, attempt, payload, allow_context):
                 st.code(page["text"], language=None)
 
 
+def show_notifications(intake_id):
+    intents = call(f"/intakes/{intake_id}/notifications")
+    if not intents:
+        return
+    st.subheader("Notifications")
+    for intent in intents:
+        label = f"{intent['channel'].title()} · {intent['state'].title()} · {intent['destination_alias']}"
+        with st.expander(label, expanded=intent["state"] == "unknown"):
+            if not intent["configured"]:
+                st.caption("No destination was configured when this notification was created.")
+            elif not intent["enabled"]:
+                st.caption("Outbound delivery is disabled.")
+            if intent["closed_at"]:
+                st.caption(f"Review episode closed at {intent['closed_at']}.")
+            if intent["automatic_retry"]:
+                st.caption(f"Automatic retry is eligible after {intent['available_at']}.")
+            for attempt in intent["attempts"]:
+                details = attempt["result"] or {}
+                st.caption(f"Attempt {attempt['number']} · {attempt['started_at']} · {attempt['outcome'].title()}")
+                if details.get("provider_receipt"):
+                    st.text(f"Provider receipt {details['provider_receipt']}")
+                if details.get("error"):
+                    st.text(details["error"])
+                for audit in ("reconciliation", "retry_authorization"):
+                    if attempt[audit]:
+                        record = attempt[audit]
+                        st.text(f"{record['reviewer']} · {record['at']} · {record['reason']}")
+            path = f"/notifications/{intent['id']}"
+            reason = f"notification-reason-{intent['id']}-{intent['state']}"
+            if intent["state"] == "unknown":
+                st.warning("Check the test inbox, Gmail Sent folder, or Telegram chat before recording the result.")
+                with st.form(f"reconcile-{intent['id']}"):
+                    outcome = f"notification-outcome-{intent['id']}"
+                    st.selectbox("Observed delivery", ("delivered", "not_delivered"),
+                                 format_func=lambda value: value.replace("_", " ").capitalize(), key=outcome)
+                    st.text_input("Reconciliation reason", key=reason)
+                    st.form_submit_button("Record reconciliation", on_click=submit_review,
+                                          args=(f"{path}/reconcile", {}, {"outcome": outcome, "reason": reason}))
+            elif intent["state"] == "failed" and not intent["closed_at"]:
+                with st.form(f"retry-notification-{intent['id']}"):
+                    st.text_input("Reason to authorize a resend", key=reason)
+                    st.form_submit_button("Authorize resend", on_click=submit_review,
+                                          args=(f"{path}/retry", {}, {"reason": reason}))
+
+
 def review(intake):
     path = f"/intakes/{intake['id']}"
     st.subheader("Extraction and review")
     st.write(f"Intake **#{intake['id']}** · **{intake['state'].title()}**")
+    if intake["source"] == "gmail":
+        st.text(f"Gmail · {intake['sender'] or 'Sender unavailable'} · Message {intake['gmail_message_id']}")
     attempt = intake["attempt"]
     canonical = intake["canonical_intake_id"]
     if canonical:
@@ -214,11 +271,18 @@ def review(intake):
     if intake["state"] in {"pending", "failed"}:
         if attempt and attempt["error"]:
             st.error(attempt["error"])
-        label = "Retry extraction" if intake["state"] == "failed" else "Process stored PDF"
-        if st.button(label, type="primary") and process(intake["id"]) is not None:
-            st.rerun()
+        if FOREGROUND or intake["state"] == "failed":
+            label = "Retry extraction" if intake["state"] == "failed" else "Process stored PDF"
+            if st.button(label, type="primary") and process(intake["id"]) is not None:
+                st.rerun()
+        else:
+            st.info("Queued for the extraction worker. Refresh to check the draft.")
         return
     if intake["state"] == "processing":
+        if not FOREGROUND:
+            if intake["job"]:
+                st.caption(f"Worker lease ends at {intake['job']['lease_until']}.")
+            return
         stopped = st.checkbox("I confirmed the previous API process stopped.", key=f"stopped-{attempt['id']}")
         if st.button("Mark attempt interrupted", disabled=not stopped):
             if call(f"{path}/interrupt", "POST", json={"attempt_id": attempt["id"]}) is not None:
@@ -298,7 +362,7 @@ def main():
                 file = st.file_uploader("Purchase order PDF", type="pdf")
                 context = st.selectbox("Customer context (optional)", [None, *customers],
                                        format_func=lambda key: customers[key] if key else "Use the PDF reference")
-                submit = st.form_submit_button("Upload and extract", type="primary")
+                submit = st.form_submit_button("Upload and extract" if FOREGROUND else "Upload PDF", type="primary")
             if submit and file is None:
                 st.error("Choose a purchase order PDF to upload.")
             if submit and file is not None:
@@ -307,7 +371,7 @@ def main():
                 if receipt is not None:
                     st.session_state["intake_select"] = receipt["id"]
                     st.query_params["intake"] = receipt["id"]
-                    if receipt["state"] == "pending":
+                    if FOREGROUND and receipt["state"] == "pending":
                         process(receipt["id"])
         intakes = call("/intakes")
         if intakes:
@@ -337,6 +401,7 @@ def main():
                     original_pdf(intake)
                 with draft_col:
                     review(intake)
+                    show_notifications(intake_id)
         elif intakes == []:
             st.info("Upload a purchase order PDF to start a review.")
 

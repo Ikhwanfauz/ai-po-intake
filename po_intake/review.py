@@ -3,7 +3,7 @@ from collections import Counter
 from sqlalchemy import func, select, text, update
 from sqlalchemy.dialects.postgresql import insert
 
-from po_intake.db import Attempt, Document, Intake, PurchaseOrder, ReviewEvent, Snapshot, Version
+from po_intake.db import Attempt, Document, ExtractionJob, Intake, PurchaseOrder, ReviewEvent, Snapshot, Version
 from po_intake.evidence import HEADERS, source_pages, verify
 from po_intake.extraction import Draft
 from po_intake.validation import validate
@@ -224,10 +224,13 @@ def identity_options(db, draft, pages, assessment):
 
 def isolate_conflicting_resends(db, intake, customer):
     # Keep the received context and reopen any linked receipt whose explicit context conflicts.
-    db.execute(update(Intake).where(
+    detached = db.scalars(update(Intake).where(
         Intake.canonical_id == intake.id,
         Intake.customer_context.is_not(None), Intake.customer_context != customer,
-    ).values(canonical_id=None, context_issue=CONTEXT_CONFLICT))
+    ).values(canonical_id=None, context_issue=CONTEXT_CONFLICT).returning(Intake.id)).all()
+    if detached:
+        db.execute(insert(ExtractionJob).values([{"intake_id": intake_id} for intake_id in detached])
+                   .on_conflict_do_nothing())
 
 
 def diff_lines(active, proposed):

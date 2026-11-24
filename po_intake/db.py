@@ -60,6 +60,7 @@ class Intake(Base):
     __tablename__ = "intakes"
     __table_args__ = (
         CheckConstraint("state IN ('pending', 'processing', 'complete', 'failed')"),
+        UniqueConstraint("source", "event_key", name="unique_intake_event"),
     )
     id: Mapped[int] = mapped_column(primary_key=True)
     digest: Mapped[str] = mapped_column(ForeignKey("documents.digest"))
@@ -68,6 +69,10 @@ class Intake(Base):
     customer_context: Mapped[str | None] = mapped_column(ForeignKey("customers.reference"))
     canonical_id: Mapped[int | None] = mapped_column(ForeignKey("intakes.id"), index=True)
     context_issue: Mapped[str | None]
+    event_key: Mapped[str | None]
+    sender: Mapped[str | None]
+    gmail_message_id: Mapped[str | None]
+    gmail_attachment_id: Mapped[str | None]
     state: Mapped[str] = mapped_column(server_default="pending")
     received_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
@@ -193,3 +198,64 @@ class OrderLine(Base):
     sku: Mapped[str] = mapped_column(ForeignKey("skus.code"))
     quantity: Mapped[int]
     unit_price: Mapped[Decimal] = mapped_column(Numeric(12, 2))
+
+class ExtractionJob(Base):
+    __tablename__ = "extraction_jobs"
+    __table_args__ = (
+        CheckConstraint("state IN ('pending', 'running', 'complete', 'failed')"),
+        CheckConstraint("(state = 'running') = (claim_token IS NOT NULL AND lease_until IS NOT NULL AND attempt_id IS NOT NULL)"),
+        Index("ix_extraction_jobs_ready", "state", "available_at"),
+    )
+    intake_id: Mapped[int] = mapped_column(ForeignKey("intakes.id"), primary_key=True)
+    state: Mapped[str] = mapped_column(server_default="pending")
+    attempt_count: Mapped[int] = mapped_column(server_default="0")
+    available_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    claim_token: Mapped[str | None]
+    lease_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    attempt_id: Mapped[int | None] = mapped_column(ForeignKey("attempts.id"))
+
+
+class Notification(Base):
+    __tablename__ = "notification_intents"
+    __table_args__ = (
+        CheckConstraint("state IN ('pending', 'sending', 'sent', 'failed', 'unknown')"),
+        CheckConstraint("channel IN ('telegram', 'gmail')"),
+        Index("ix_notification_ready", "state", "available_at"),
+        Index("one_open_review_episode", "episode_scope", unique=True,
+              postgresql_where=text("episode_scope IS NOT NULL AND closed_at IS NULL")),
+    )
+    id: Mapped[int] = mapped_column(primary_key=True)
+    event_key: Mapped[str] = mapped_column(unique=True)
+    intake_id: Mapped[int] = mapped_column(ForeignKey("intakes.id"), index=True)
+    po_id: Mapped[int | None] = mapped_column(ForeignKey("purchase_orders.id"), index=True)
+    order_id: Mapped[int | None] = mapped_column(ForeignKey("sales_orders.id"), unique=True)
+    episode_scope: Mapped[str | None]
+    closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    channel: Mapped[str]
+    destination: Mapped[str | None]
+    destination_alias: Mapped[str]
+    payload: Mapped[dict] = mapped_column(JSON)
+    state: Mapped[str] = mapped_column(server_default="pending")
+    attempt_count: Mapped[int] = mapped_column(server_default="0")
+    current_attempt_id: Mapped[str | None]
+    retryable: Mapped[bool] = mapped_column(server_default=text("false"))
+    available_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class NotificationAttempt(Base):
+    __tablename__ = "notification_attempts"
+    __table_args__ = (
+        CheckConstraint("outcome IN ('sending', 'sent', 'failed', 'unknown')"),
+        UniqueConstraint("notification_id", "number"),
+    )
+    id: Mapped[str] = mapped_column(primary_key=True)
+    notification_id: Mapped[int] = mapped_column(ForeignKey("notification_intents.id"))
+    number: Mapped[int]
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    deadline: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    outcome: Mapped[str]
+    result: Mapped[dict | None] = mapped_column(JSON)
+    reconciliation: Mapped[dict | None] = mapped_column(JSON)
+    retry_authorization: Mapped[dict | None] = mapped_column(JSON)

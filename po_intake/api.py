@@ -1,30 +1,23 @@
-import logging
-from datetime import datetime, timezone
+from hmac import compare_digest
 from decimal import Decimal
-from pathlib import PureWindowsPath
 from typing import Literal
 
 import pymupdf
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import Depends, FastAPI, File, Form, Header, HTTPException, UploadFile
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, Field, ValidationError
 from sqlalchemy import select
-from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
-from po_intake import review
+from po_intake import intake as intake_service
+from po_intake import jobs, notifications, review, worker
 from po_intake.config import Settings
 from po_intake.db import (
-    Attempt, Customer, Document, Intake, OrderLine, PurchaseOrder, ReviewEvent, SalesOrder,
+    Attempt, Customer, Document, ExtractionJob, Intake, OrderLine, PurchaseOrder, ReviewEvent, SalesOrder,
     Snapshot, Version, make_engine,
 )
 from po_intake.evidence import HEADERS, quote_location, supported_correction
-from po_intake.extraction import (
-    MAX_PDF_BYTES, MAX_TEXT_CHARS, MODEL_OPTIONS, Draft, DraftLine, ExtractionOutput, Proposal,
-    extract_with_ollama, open_pdf, pdf_pages, store_pdf,
-)
-
-log = logging.getLogger(__name__)
+from po_intake.extraction import MAX_PDF_BYTES, Draft, DraftLine, Proposal, extract_with_ollama, open_pdf
 
 
 class Approve(BaseModel):
@@ -72,6 +65,8 @@ def intake_summary(intake, work):
         "id": intake.id, "filename": intake.filename, "state": work.state,
         "received_at": intake.received_at, "customer_context": intake.customer_context,
         "canonical_intake_id": intake.canonical_id, "context_issue": intake.context_issue, "source": intake.source,
+        "sender": intake.sender, "gmail_message_id": intake.gmail_message_id,
+        "gmail_attachment_id": intake.gmail_attachment_id,
     }
 
 
@@ -127,6 +122,25 @@ def create_app(settings=None, extractor=extract_with_ollama):
     engine = make_engine(settings.database_url)
     app = FastAPI(title="Meridian PO Intake")
 
+    def authorized(configured, supplied):
+        return bool(configured) and compare_digest(configured.encode(), (supplied or "").encode())
+
+    def integration_auth(x_integration_key: str | None = Header(None)):
+        if not authorized(settings.integration_key, x_integration_key):
+            raise HTTPException(401, "A valid integration key is required.")
+
+    @app.middleware("http")
+    async def protect_staff_routes(request, call_next):
+        path = request.url.path
+        if (settings.staff_key and not path.startswith("/integrations/") and path != "/health"
+                and not authorized(settings.staff_key, request.headers.get("x-staff-key"))):
+            return JSONResponse(status_code=401, content={"detail": "A valid staff key is required."})
+        return await call_next(request)
+
+    @app.get("/health")
+    def health():
+        return {"status": "ok"}
+
     def original(db, intake_id):
         intake = get_intake(db, intake_id)
         document = db.get(Document, intake.digest)
@@ -146,34 +160,17 @@ def create_app(settings=None, extractor=extract_with_ollama):
     @app.post("/intakes", status_code=201)
     def upload(file: UploadFile = File(), customer_context: str | None = Form(None)):
         data = file.file.read(MAX_PDF_BYTES + 1)
-        if not data or len(data) > MAX_PDF_BYTES:
-            raise HTTPException(422, "Upload a nonempty PDF of at most 10 MiB.")
-        try:
-            with open_pdf(data):
-                pass
-        except (ValueError, pymupdf.FileDataError) as exc:
-            raise HTTPException(422, "Upload a readable, unencrypted PDF with 1 to 20 pages.") from exc
         with Session(engine) as db, db.begin():
-            context = customer_context or None
-            if context and db.get(Customer, context) is None:
-                raise HTTPException(422, "Selected customer does not exist.")
-            try:
-                digest, path = store_pdf(settings.storage, data)
-            except OSError as exc:
-                log.exception("Could not store original PDF")
-                raise HTTPException(503, "Could not store the original PDF.") from exc
-            db.execute(insert(Document).values(
-                digest=digest, path=path, size=len(data)
-            ).on_conflict_do_nothing())
-            db.get(Document, digest, with_for_update=True)
-            canonical, issue = review.exact_delivery(db, digest, context)
-            intake = Intake(
-                digest=digest, filename=PureWindowsPath(file.filename or "order.pdf").name,
-                customer_context=context, canonical_id=canonical.id if canonical else None, context_issue=issue,
-            )
-            db.add(intake)
-            db.flush()
-            return intake_summary(intake, canonical or intake)
+            receipt, work, _ = intake_service.accept(db, settings, data, file.filename, customer_context or None)
+            return intake_summary(receipt, work)
+
+    @app.post("/integrations/gmail/intakes", status_code=201, dependencies=[Depends(integration_auth)])
+    def gmail_upload(attachment: intake_service.GmailAttachment, response: Response):
+        with Session(engine) as db, db.begin():
+            receipt, work, created = intake_service.accept(db, settings, None, None, gmail=attachment)
+            if not created:
+                response.status_code = 200
+            return {**intake_summary(receipt, work), "replayed": not created}
 
     @app.get("/intakes")
     def intakes():
@@ -192,6 +189,9 @@ def create_app(settings=None, extractor=extract_with_ollama):
             result = intake_summary(receipt, work)
             result.update(attempt=None, order=None, snapshot=None, po=None, version=None, identity_options=None,
                           history=[], activity=[], comparison=None, receipt_edit_history=[])
+            job = db.get(ExtractionJob, work.id)
+            result["job"] = {"state": job.state, "attempt_count": job.attempt_count,
+                             "available_at": job.available_at, "lease_until": job.lease_until} if job else None
             attempt = latest_attempt(db, work.id)
             if not attempt:
                 return result
@@ -280,67 +280,28 @@ def create_app(settings=None, extractor=extract_with_ollama):
     @app.post("/intakes/{intake_id}/process")
     def process(intake_id: int):
         with Session(engine) as db, db.begin():
-            intake = work_intake(db, intake_id, lock=True)
+            intake = work_intake(db, intake_id)
             if intake.state not in {"pending", "failed"}:
                 if intake.id != intake_id:
                     return intake_detail(intake_id)
                 return conflict(intake, f"Intake is already {intake.state}. Refresh its review.")
-            path = settings.storage / db.get(Document, intake.digest).path
-            attempt = Attempt(
-                intake_id=intake.id, state="processing",
-                settings={"model": settings.model, "think": False, "timeout": settings.timeout, **MODEL_OPTIONS},
-            )
-            intake.state = "processing"
-            db.add(attempt)
-            db.flush()
-            attempt_id, work_id = attempt.id, intake.id
-
-        pages = raw = draft = error = output_source = None
-        try:
-            pages = pdf_pages(path.read_bytes())
-            if sum(len(page["text"]) for page in pages) > MAX_TEXT_CHARS:
-                raise ValueError("The PDF exceeds the local extraction text limit.")
-            result = extractor(settings, pages) if any(page["text"].strip() for page in pages) else None
-            if isinstance(result, ExtractionOutput):
-                raw, output_source = result.raw, result.source
-            else:
-                raw = result
-            draft = Draft.model_validate_json(raw) if raw is not None else Draft()
-        except ValidationError:
-            error = "Ollama returned a response that does not match the extraction schema."
-        except (ValueError, OSError, pymupdf.FileDataError) as exc:
-            error = str(exc)
-        except Exception:
-            log.exception("Extraction failed for intake %s", work_id)
-            error = "Extraction failed unexpectedly. Check the API log and retry."
-
-        with Session(engine) as db, db.begin():
-            intake = get_intake(db, work_id, lock=True)
-            attempt = latest_attempt(db, work_id)
-            if attempt.id != attempt_id or attempt.state != "processing":
-                return conflict(intake, "This extraction attempt is no longer current.")
-            attempt.pages, attempt.raw, attempt.error = pages, raw, error
-            if output_source:
-                attempt.settings = {**attempt.settings, "source": output_source}
-            attempt.finished_at = datetime.now(timezone.utc)
-            if error is not None:
-                attempt.state = intake.state = "failed"
-            else:
-                attempt.draft = draft.model_dump(mode="json")
-                attempt.validation = review.store_initial_review(db, intake, attempt, draft)
-                attempt.state = intake.state = "complete"
+            work_id = intake.id
+            jobs.retry_failed(db, work_id)
+        if settings.foreground:
+            result = worker.run_one(engine, settings, extractor, intake_id=work_id, automatic_retry=False)
+            if result is not True:
+                with Session(engine) as db:
+                    return conflict(get_intake(db, intake_id), "This extraction attempt is no longer current.")
         return intake_detail(intake_id)
 
     @app.post("/intakes/{intake_id}/interrupt")
     def interrupt(intake_id: int, request: Interrupt):
         with Session(engine) as db, db.begin():
-            intake = work_intake(db, intake_id, lock=True)
-            attempt = latest_attempt(db, intake.id)
-            if intake.state != "processing" or attempt.id != request.attempt_id:
+            intake = work_intake(db, intake_id)
+            if not settings.foreground:
+                return conflict(intake, "The worker recovers interrupted attempts when their leases expire.")
+            if not jobs.interrupt(db, intake.id, request.attempt_id, settings.reviewer):
                 return conflict(intake, "The processing attempt changed. Refresh its review.")
-            attempt.state = intake.state = "failed"
-            attempt.error = f"Attempt marked interrupted by {settings.reviewer}."
-            attempt.finished_at = datetime.now(timezone.utc)
         return intake_detail(intake_id)
 
     def check_expected(db, intake, version, snapshot, po, request, action):
@@ -408,6 +369,8 @@ def create_app(settings=None, extractor=extract_with_ollama):
                 confirmed = review.assess(db, draft, attempt.pages, None)["validation"]["customer"]
                 if confirmed is None:
                     raise HTTPException(422, "The evidenced customer must be in the customer catalog.")
+                if intake.source == "gmail" and settings.gmail_senders.get(intake.sender) != confirmed:
+                    raise HTTPException(422, "The configured Gmail sender must agree with the evidenced customer.")
                 db.get(Document, intake.digest, with_for_update=True)
                 context = confirmed
                 intake.context_issue = None
@@ -442,6 +405,7 @@ def create_app(settings=None, extractor=extract_with_ollama):
                     version.disposition = "equivalent"
                     review.record(db, version, edited, "equivalent", settings.reviewer, {"version": version.number})
                 review.update_status(db, po)
+            notifications.sync_review(db, settings, intake)
         return intake_detail(intake_id)
 
     @app.post("/intakes/{intake_id}/validate")
@@ -458,6 +422,7 @@ def create_app(settings=None, extractor=extract_with_ollama):
                 review.update_status(db, po)
             else:
                 review.link_version(db, intake, version, snapshot, assessment, settings.reviewer)
+            notifications.sync_review(db, settings, intake)
         return intake_detail(intake_id)
 
     def decide_revision(intake_id, request, activate):
@@ -484,6 +449,7 @@ def create_app(settings=None, extractor=extract_with_ollama):
             review.record(db, version, snapshot, action, settings.reviewer,
                           {"reason": request.reason.strip(), "previous_active": request.active_snapshot_id})
             review.update_status(db, po)
+            notifications.sync_review(db, settings, intake)
         return intake_detail(intake_id)
 
     @app.post("/intakes/{intake_id}/activate")
@@ -515,6 +481,7 @@ def create_app(settings=None, extractor=extract_with_ollama):
             if issues:
                 review.record(db, version, snapshot, "approval_blocked", settings.reviewer, {"issues": issues})
                 review.update_status(db, po)
+                notifications.sync_review(db, settings, intake)
                 return conflict(intake, "Approval blocked.", issues)
             validation = assessment["validation"]
             order = SalesOrder(
@@ -531,7 +498,39 @@ def create_app(settings=None, extractor=extract_with_ollama):
                 ))
             po.status = "ordered"
             review.record(db, version, snapshot, "approved", settings.reviewer, {"order_id": order.id})
+            notifications.sync_review(db, settings, intake)
+            notifications.queue_confirmation(db, settings, order)
             return order_summary(order)
+
+    @app.post("/integrations/notifications/claim", dependencies=[Depends(integration_auth)])
+    def claim_notification():
+        with Session(engine) as db, db.begin():
+            return {"delivery": notifications.claim(db, settings)}
+
+    @app.post("/integrations/notifications/attempts/{attempt_id}/result", dependencies=[Depends(integration_auth)])
+    def notification_result(attempt_id: str, result: notifications.DeliveryResult):
+        with Session(engine) as db, db.begin():
+            state = notifications.report(db, settings, attempt_id, result)
+        if state is None:
+            raise HTTPException(409, "This delivery result is conflicting, expired, or superseded.")
+        return {"state": state}
+
+    @app.get("/intakes/{intake_id}/notifications")
+    def intake_notifications(intake_id: int):
+        with Session(engine) as db, db.begin():
+            work = work_intake(db, intake_id)
+            version = review.version_for(db, work.id)
+            return notifications.views(db, settings, {intake_id, work.id}, version.po_id if version else None)
+
+    @app.post("/notifications/{notification_id}/reconcile")
+    def reconcile_notification(notification_id: int, decision: notifications.Reconciliation):
+        with Session(engine) as db, db.begin():
+            return {"state": notifications.reconcile(db, settings, notification_id, decision)}
+
+    @app.post("/notifications/{notification_id}/retry")
+    def retry_notification(notification_id: int, authorization: notifications.RetryAuthorization):
+        with Session(engine) as db, db.begin():
+            return {"state": notifications.authorize_retry(db, settings, notification_id, authorization)}
 
     @app.get("/orders")
     def orders():

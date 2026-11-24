@@ -19,6 +19,10 @@ MODEL_OPTIONS = {"temperature": 0, "num_ctx": 8192, "seed": 42}
 PDF_LOCK = Lock()
 
 
+class TransientExtractionError(ValueError):
+    pass
+
+
 @dataclass(frozen=True)
 class ExtractionOutput:
     raw: str
@@ -138,7 +142,10 @@ def extract_with_ollama(settings, pages):
             trust_env=False,
         )
     except httpx.RequestError as exc:
-        raise ValueError(f"Ollama request failed ({type(exc).__name__}). Check the local runner and retry.") from exc
+        raise TransientExtractionError(
+            f"Ollama request failed ({type(exc).__name__}). Check the local runner and retry."
+        ) from exc
     if response.is_error:
-        raise ValueError(f"Ollama returned HTTP {response.status_code}. Check the runner and model tag.")
+        error = TransientExtractionError if response.status_code == 429 or response.status_code >= 500 else ValueError
+        raise error(f"Ollama returned HTTP {response.status_code}. Check the runner and model tag.")
     return response.json()["message"]["content"]
