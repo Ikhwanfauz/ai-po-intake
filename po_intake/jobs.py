@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from datetime import timedelta
+from math import ceil
 from pathlib import Path
 from uuid import uuid4
 
@@ -10,6 +11,7 @@ from sqlalchemy.orm import Session
 from po_intake import notifications
 from po_intake.db import Attempt, Document, ExtractionJob, Intake
 from po_intake.extraction import MODEL_OPTIONS
+from po_intake.extraction_graph import MAX_FOLLOWUP_CALLS
 
 
 def enqueue(db, intake_id):
@@ -41,7 +43,8 @@ class Claim:
 
 
 def claim(engine, settings, intake_id=None):
-    lease_seconds = settings.extraction_lease or max(30, int(settings.timeout) + 30)
+    graph_seconds = MAX_FOLLOWUP_CALLS * settings.graph_timeout if settings.graph_auto else 0
+    lease_seconds = settings.extraction_lease or ceil(settings.timeout + graph_seconds + 30)
     with Session(engine) as db, db.begin():
         while True:
             now = notifications.clock(db)

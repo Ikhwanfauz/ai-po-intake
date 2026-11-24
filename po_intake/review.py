@@ -27,7 +27,7 @@ def next_edit_id(db):
     return db.scalar(text("SELECT nextval(pg_get_serial_sequence('attempts', 'id'))"))
 
 
-def assess(db, draft, pages, context, context_issue=None, lock_prices=False):
+def assess(db, draft, pages, context, context_issue=None, lock_prices=False, *, graph_issues=()):
     evidence = verify(draft, pages)
     checked = draft.model_copy(deep=True)
     for line, findings in zip(checked.lines, evidence["lines"]):
@@ -36,12 +36,13 @@ def assess(db, draft, pages, context, context_issue=None, lock_prices=False):
     check_prices = not context_issue and evidence["fields"]["customer_reference"]["status"] == "verified"
     validation = validate(db, checked, pages or [], context, lock_prices=lock_prices, check_prices=check_prices)
     evidence_issues = evidence["issues"]
-    issues = validation["issues"] + evidence_issues
+    issues = validation["issues"] + evidence_issues + list(graph_issues)
     if context_issue:
         issues.append(context_issue)
     return {
         "context": context, "context_issue": context_issue,
         "evidence": evidence, "validation": validation, "issues": issues,
+        **({"graph_issues": list(graph_issues)} if graph_issues else {}),
     }
 
 
@@ -82,7 +83,7 @@ def complete_content(assessment):
     if assessment is None or identity_key(assessment) is None:
         return None
     validation = assessment["validation"]
-    if validation["field_issues"] or assessment["evidence"]["issues"]:
+    if validation["field_issues"] or assessment["evidence"]["issues"] or assessment.get("graph_issues"):
         return None
     counter = Counter((line["sku"], line["quantity"], line["unit_price"]) for line in validation["lines"])
     return validation["currency"], counter
@@ -183,11 +184,12 @@ def link_version(db, intake, version, snapshot, assessment, author):
     return po
 
 
-def store_initial_review(db, intake, attempt, draft):
+def store_initial_review(db, intake, attempt, draft, *, graph_issues=()):
     version = Version(intake_id=intake.id, disposition="unlinked")
     db.add(version)
     db.flush()
-    assessment = assess(db, draft, attempt.pages, intake.customer_context, intake.context_issue)
+    assessment = assess(db, draft, attempt.pages, intake.customer_context, intake.context_issue,
+                        graph_issues=graph_issues)
     author = attempt.settings.get("source", "Ollama")
     snapshot = Snapshot(id=attempt.id, version_id=version.id, attempt_id=attempt.id, edit=1, author=author,
                         reason="Original extraction", draft=attempt.draft, assessment=assessment)

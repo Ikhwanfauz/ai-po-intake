@@ -6,6 +6,7 @@ import streamlit as st
 
 API = os.getenv("PO_API_URL", "http://127.0.0.1:8000")
 TIMEOUT = float(os.getenv("OLLAMA_TIMEOUT", "180")) + 30
+GRAPH_TIMEOUT = TIMEOUT + 3 * float(os.getenv("PO_GRAPH_TIMEOUT", "45"))
 STAFF_KEY = os.getenv("PO_STAFF_KEY", "")
 FOREGROUND = os.getenv("PO_FOREGROUND_EXTRACTION", "").strip().lower() in {"1", "true"}
 
@@ -18,7 +19,7 @@ def feedback(message, issues=()):
         st.warning(issue)
 
 
-def request(path, method="GET", capture=False, **kwargs):
+def request(path, method="GET", capture=False, timeout=TIMEOUT, **kwargs):
     def report(message, issues=()):
         if capture:
             st.session_state["review_feedback"] = (message, issues)
@@ -28,7 +29,7 @@ def request(path, method="GET", capture=False, **kwargs):
     try:
         headers = {"X-Staff-Key": STAFF_KEY} if STAFF_KEY else None
         response = httpx.request(method, f"{API.rstrip('/')}{path}", headers=headers,
-                                 timeout=TIMEOUT, trust_env=False, **kwargs)
+                                 timeout=timeout, trust_env=False, **kwargs)
         if response.is_error:
             detail = response.json().get("detail", response.reason_phrase)
             if isinstance(detail, dict):
@@ -51,7 +52,8 @@ def call(path, method="GET", **kwargs):
 
 def process(intake_id):
     with st.spinner("Extracting from the stored PDF…" if FOREGROUND else "Queuing extraction…"):
-        return call(f"/intakes/{intake_id}/process", "POST")
+        timeout = GRAPH_TIMEOUT if FOREGROUND else TIMEOUT
+        return call(f"/intakes/{intake_id}/process", "POST", timeout=timeout)
 
 
 def original_pdf(intake):
@@ -199,6 +201,9 @@ def correct_draft(path, snapshot, attempt, payload, allow_context):
             if field == "customer_reference" and allow_context:
                 keys["confirm_customer"] = f"{key}-confirm"
                 st.checkbox("Confirm this source-supported customer for the intake", key=keys["confirm_customer"])
+            if (snapshot["assessment"] or {}).get("graph_issues"):
+                keys["resolve_graph_issue"] = f"{key}-resolved"
+                st.checkbox("I resolved the LangGraph hold against the original PDF", key=keys["resolve_graph_issue"])
             st.form_submit_button("Save correction", on_click=submit_review,
                                   args=(f"{path}/correct", {**payload, "field": field, "line": line}, keys))
         with st.expander("Extracted PDF page text"):
@@ -250,6 +255,68 @@ def show_notifications(intake_id):
                     st.text_input("Reason to authorize a resend", key=reason)
                     st.form_submit_button("Authorize resend", on_click=submit_review,
                                           args=(f"{path}/retry", {}, {"reason": reason}))
+
+
+def run_staff_graph(path, payload):
+    request(path, "POST", json=payload, capture=True, timeout=GRAPH_TIMEOUT)
+
+
+def show_graph(intake):
+    snapshot, po, version = intake["snapshot"], intake["po"], intake["version"]
+    if not snapshot:
+        return
+    active = po["active_snapshot_id"] if po else None
+    payload = {"snapshot_id": snapshot["id"], "active_snapshot_id": active}
+    path = f"/intakes/{intake['id']}/graph-runs"
+    with st.expander("LangGraph review"):
+        if not intake["canonical_intake_id"]:
+            st.button("Run LangGraph review", on_click=run_staff_graph, args=(path, payload))
+            st.caption("Staff runs save a candidate for review. Allow a few minutes for model calls.")
+        runs = call(path)
+        if not runs:
+            return
+        labels = {run["id"]: f"#{run['id']} · {run['mode'].title()} · {run['trace']['decision'].title()}"
+                  for run in runs}
+        selected = st.selectbox("Saved graph run", list(labels), format_func=labels.get, key=f"graph-{intake['id']}")
+        run = next(run for run in runs if run["id"] == selected)
+        trace = run["trace"]
+        st.caption(f"Snapshot {run['source_snapshot_id']} · {run['model']} · {run['created_at']}")
+        st.text(trace["trigger"])
+        st.write(f"**{trace['decision'].title()}** · {trace['call_count']} calls · "
+                 f"{trace['rereads']} targeted reread · {trace['elapsed_ms'] / 1000:.1f} s")
+        st.text(trace["reason"])
+        for handoff in trace["handoffs"]:
+            pages = ", ".join(map(str, handoff["pages"]))
+            st.caption(f"{handoff['agent']} · {handoff['step']} · Pages {pages} · {handoff['duration_ms']} ms")
+            if handoff.get("source"):
+                st.text(handoff["source"])
+            decision = handoff.get("decision")
+            if decision:
+                st.text(f"{decision['action'].title()} — {decision['reason']}")
+            for target in handoff.get("targets", decision["targets"] if decision else []):
+                st.text(f"Page {target['page']} · {target['field']} · {target['reason']}")
+            if handoff.get("error"):
+                st.text(handoff["error"])
+        with st.expander("Initial proposal and model trace"):
+            st.json(trace, expanded=False)
+        if run["assessment"]:
+            st.dataframe(field_rows(run["assessment"]), hide_index=True, width="stretch")
+            for issue in run["assessment"]["issues"]:
+                st.warning(issue)
+        if run["adopted_snapshot_id"]:
+            st.caption(f"Staff adopted this candidate as snapshot {run['adopted_snapshot_id']}.")
+        eligible = (
+            run["mode"] == "staff" and trace["decision"] == "accept"
+            and run["source_snapshot_id"] == snapshot["id"] and run["expected_active_snapshot_id"] == active
+            and version["disposition"] in {"unlinked", "active", "pending"} and not intake["order"]
+            and not intake["canonical_intake_id"]
+        )
+        if eligible:
+            reason = f"graph-reason-{run['id']}"
+            with st.form(f"adopt-graph-{run['id']}"):
+                st.text_input("Reason to use this reviewed candidate", key=reason)
+                st.form_submit_button("Use reviewed candidate", on_click=submit_review,
+                                      args=(f"{path}/{run['id']}/adopt", payload, {"reason": reason}))
 
 
 def review(intake):
@@ -320,6 +387,7 @@ def review(intake):
         else:
             st.json(attempt["draft"])
     show_history(intake)
+    show_graph(intake)
     if intake["order"]:
         st.success(f"Confirmed order · {intake['order']['number']}")
         show_order(intake["order"]["id"])

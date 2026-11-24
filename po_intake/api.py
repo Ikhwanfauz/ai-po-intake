@@ -13,15 +13,20 @@ from po_intake import intake as intake_service
 from po_intake import jobs, notifications, review, worker
 from po_intake.config import Settings
 from po_intake.db import (
-    Attempt, Customer, Document, ExtractionJob, Intake, OrderLine, PurchaseOrder, ReviewEvent, SalesOrder,
+    Attempt, Customer, Document, ExtractionJob, GraphRun, Intake, OrderLine, PurchaseOrder, ReviewEvent, SalesOrder,
     Snapshot, Version, make_engine,
 )
 from po_intake.evidence import HEADERS, quote_location, supported_correction
-from po_intake.extraction import MAX_PDF_BYTES, Draft, DraftLine, Proposal, extract_with_ollama, open_pdf
+from po_intake.extraction import MAX_PDF_BYTES, Draft, DraftLine, Proposal, extract_with_ollama, ollama_structured, open_pdf
+from po_intake.extraction_graph import graph_issues, run_graph
 
 
 class Approve(BaseModel):
     snapshot_id: int = Field(gt=0)
+
+
+class GraphReviewRequest(Approve):
+    active_snapshot_id: int | None
 
 
 class ReviewRequest(Approve):
@@ -36,6 +41,7 @@ class Correction(ReviewRequest):
     page: int = Field(gt=0)
     excerpt: str = Field(min_length=1, max_length=4000)
     confirm_customer: bool = False
+    resolve_graph_issue: bool = False
 
 
 class Interrupt(BaseModel):
@@ -109,7 +115,8 @@ def assess_snapshot(db, intake, snapshot, po, lock_prices=False):
     context = initial["context"] if initial else intake.customer_context
     draft = Draft.model_validate(snapshot.draft)
     attempt = db.get(Attempt, snapshot.attempt_id)
-    assessment = review.assess(db, draft, attempt.pages, context, intake.context_issue, lock_prices)
+    assessment = review.assess(db, draft, attempt.pages, context, intake.context_issue, lock_prices,
+                               graph_issues=(initial or {}).get("graph_issues", ()))
     if po and review.identity_key(assessment) != (po.customer, po.po_key):
         issue = "The verified identity no longer matches the linked PO."
         assessment["issues"].append(issue)
@@ -117,7 +124,16 @@ def assess_snapshot(db, intake, snapshot, po, lock_prices=False):
     return assessment
 
 
-def create_app(settings=None, extractor=extract_with_ollama):
+def graph_run_view(run):
+    return {
+        "id": run.id, "mode": run.mode, "model": run.model, "author": run.author, "created_at": run.created_at,
+        "source_snapshot_id": run.source_snapshot_id, "expected_active_snapshot_id": run.expected_active_snapshot_id,
+        "adopted_snapshot_id": run.adopted_snapshot_id, "candidate": run.candidate,
+        "assessment": run.assessment, "trace": run.trace,
+    }
+
+
+def create_app(settings=None, extractor=extract_with_ollama, graph_chat=ollama_structured):
     settings = settings or Settings()
     engine = make_engine(settings.database_url)
     app = FastAPI(title="Meridian PO Intake")
@@ -288,7 +304,8 @@ def create_app(settings=None, extractor=extract_with_ollama):
             work_id = intake.id
             jobs.retry_failed(db, work_id)
         if settings.foreground:
-            result = worker.run_one(engine, settings, extractor, intake_id=work_id, automatic_retry=False)
+            result = worker.run_one(engine, settings, extractor, intake_id=work_id, automatic_retry=False,
+                                    graph_chat=graph_chat)
             if result is not True:
                 with Session(engine) as db:
                     return conflict(get_intake(db, intake_id), "This extraction attempt is no longer current.")
@@ -312,6 +329,88 @@ def create_app(settings=None, extractor=extract_with_ollama):
                               {"reason": "Stale snapshot", "submitted": request.snapshot_id,
                                "submitted_active": request.active_snapshot_id, "current_active": expected})
             return conflict(intake, "The reviewed snapshot changed. Refresh and review the current version.")
+
+    @app.get("/intakes/{intake_id}/graph-runs")
+    def graph_runs(intake_id: int):
+        with Session(engine) as db:
+            work = work_intake(db, intake_id)
+            query = select(GraphRun).where(GraphRun.intake_id == work.id).order_by(GraphRun.id.desc())
+            return [graph_run_view(run) for run in db.scalars(query)]
+
+    @app.post("/intakes/{intake_id}/graph-runs", status_code=201)
+    def run_staff_graph(intake_id: int, request: GraphReviewRequest):
+        with Session(engine) as db, db.begin():
+            intake, version, snapshot, po = lock_review(db, intake_id)
+            stale = check_expected(db, intake, version, snapshot, po, request, "graph_review")
+            if stale is not None:
+                return stale
+            attempt = db.get(Attempt, snapshot.attempt_id)
+            pages, original_draft = attempt.pages, Draft.model_validate(snapshot.draft)
+            context = (snapshot.assessment or {}).get("context", intake.customer_context)
+            context_issue = intake.context_issue
+        result = run_graph(settings, pages or [], "Staff requested graph review", baseline=extractor,
+                           chat=graph_chat, fallback=original_draft)
+        with Session(engine) as db, db.begin():
+            assessment = review.assess(db, result.draft, pages, context, context_issue,
+                                       graph_issues=graph_issues(result))
+            run = GraphRun(intake_id=intake_id, source_snapshot_id=request.snapshot_id,
+                           expected_active_snapshot_id=request.active_snapshot_id, mode="staff",
+                           author=settings.reviewer, model=settings.model,
+                           candidate=result.draft.model_dump(mode="json"), assessment=assessment, trace=result.trace)
+            db.add(run)
+            db.flush()
+            return graph_run_view(run)
+
+    @app.post("/intakes/{intake_id}/graph-runs/{run_id}/adopt")
+    def adopt_graph_run(intake_id: int, run_id: int, request: ReviewRequest):
+        with Session(engine) as db, db.begin():
+            intake, version, snapshot, po = lock_review(db, intake_id)
+            run = db.get(GraphRun, run_id, with_for_update=True)
+            if not run or run.intake_id != intake_id or run.mode != "staff":
+                raise HTTPException(404, "Staff graph candidate not found.")
+            stale = check_expected(db, intake, version, snapshot, po, request, "graph_adoption")
+            if stale is not None:
+                return stale
+            if (run.source_snapshot_id != snapshot.id or run.expected_active_snapshot_id != request.active_snapshot_id
+                    or run.adopted_snapshot_id is not None):
+                return conflict(intake, "The candidate no longer matches the reviewed snapshot.")
+            if version.disposition not in {"unlinked", "active", "pending"} or (po and po.status == "ordered"):
+                return conflict(intake, "This version is closed for candidate adoption.")
+            if run.trace["decision"] != "accept":
+                return conflict(intake, "Staff must resolve the graph findings before using this draft.")
+            draft = Draft.model_validate(run.candidate)
+            attempt = db.get(Attempt, snapshot.attempt_id)
+            context = (snapshot.assessment or {}).get("context", intake.customer_context)
+            assessment = review.assess(db, draft, attempt.pages, context, intake.context_issue)
+            if review.complete_content(assessment) is None or (
+                po and review.identity_key(assessment) != (po.customer, po.po_key)
+            ):
+                return conflict(intake, "The candidate failed backend evidence or identity checks.", assessment["issues"])
+            adopted = Snapshot(
+                id=review.next_edit_id(db), version_id=version.id, attempt_id=attempt.id,
+                parent_id=snapshot.id, edit=snapshot.edit + 1, author=settings.reviewer,
+                reason=request.reason.strip(), draft=run.candidate, assessment=assessment,
+            )
+            db.add(adopted)
+            db.flush()
+            run.adopted_snapshot_id = adopted.id
+            review.record(db, version, adopted, "graph_candidate_adopted", settings.reviewer,
+                          {"run": run.id, "previous_snapshot_id": snapshot.id, "reason": adopted.reason})
+            update_after_edit(db, intake, version, po, adopted, assessment)
+        return intake_detail(intake_id)
+
+    def update_after_edit(db, intake, version, po, edited, assessment):
+        if po is None:
+            review.link_version(db, intake, version, edited, assessment, settings.reviewer)
+        else:
+            if version.id == po.active_version_id:
+                po.active_snapshot_id = edited.id
+                review.reconcile_pending(db, po, settings.reviewer)
+            elif review.equivalent(db, po, assessment):
+                version.disposition = "equivalent"
+                review.record(db, version, edited, "equivalent", settings.reviewer, {"version": version.number})
+            review.update_status(db, po)
+        notifications.sync_review(db, settings, intake)
 
     @app.post("/intakes/{intake_id}/correct")
     def correct(intake_id: int, request: Correction):
@@ -375,10 +474,17 @@ def create_app(settings=None, extractor=extract_with_ollama):
                 context = confirmed
                 intake.context_issue = None
                 review.isolate_conflicting_resends(db, intake, context)
-            assessment = review.assess(db, draft, attempt.pages, context, intake.context_issue)
+            holds = (snapshot.assessment or {}).get("graph_issues", ())
+            assessment = review.assess(db, draft, attempt.pages, context, intake.context_issue,
+                                       graph_issues=() if request.resolve_graph_issue else holds)
+            if request.resolve_graph_issue and (
+                not holds or assessment["evidence"]["issues"] or assessment["validation"]["field_issues"]
+            ):
+                raise HTTPException(422, "Resolve all source evidence and required fields before clearing the graph hold.")
             if po and review.identity_key(assessment) != (po.customer, po.po_key):
                 raise HTTPException(422, "This edit would change the verified identity of a linked PO.")
-            if draft_before == draft.model_dump(mode="json") and not request.confirm_customer:
+            if (draft_before == draft.model_dump(mode="json") and not request.confirm_customer
+                    and not request.resolve_graph_issue):
                 raise HTTPException(422, "The correction does not change a value or its evidence.")
             edited = Snapshot(
                 id=review.next_edit_id(db), version_id=version.id, attempt_id=attempt.id,
@@ -394,18 +500,9 @@ def create_app(settings=None, extractor=extract_with_ollama):
                 "previous_value": previous, "value": request.value,
                 "original_customer_context": intake.customer_context,
                 "confirmed_customer_context": context if request.confirm_customer else None,
+                **({"graph_issues_resolved": holds} if request.resolve_graph_issue else {}),
             })
-            if po is None:
-                review.link_version(db, intake, version, edited, assessment, settings.reviewer)
-            else:
-                if version.id == po.active_version_id:
-                    po.active_snapshot_id = edited.id
-                    review.reconcile_pending(db, po, settings.reviewer)
-                elif review.equivalent(db, po, assessment):
-                    version.disposition = "equivalent"
-                    review.record(db, version, edited, "equivalent", settings.reviewer, {"version": version.number})
-                review.update_status(db, po)
-            notifications.sync_review(db, settings, intake)
+            update_after_edit(db, intake, version, po, edited, assessment)
         return intake_detail(intake_id)
 
     @app.post("/intakes/{intake_id}/validate")

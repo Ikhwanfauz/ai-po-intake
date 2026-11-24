@@ -259,3 +259,20 @@ class NotificationAttempt(Base):
     result: Mapped[dict | None] = mapped_column(JSON)
     reconciliation: Mapped[dict | None] = mapped_column(JSON)
     retry_authorization: Mapped[dict | None] = mapped_column(JSON)
+
+
+class GraphRun(Base):
+    __tablename__ = "extraction_graph_runs"
+    __table_args__ = (CheckConstraint("mode IN ('automatic', 'staff')"),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    intake_id: Mapped[int] = mapped_column(ForeignKey("intakes.id"), index=True)
+    source_snapshot_id: Mapped[int] = mapped_column(ForeignKey("draft_snapshots.id"))
+    expected_active_snapshot_id: Mapped[int | None] = mapped_column(ForeignKey("draft_snapshots.id"))
+    adopted_snapshot_id: Mapped[int | None] = mapped_column(ForeignKey("draft_snapshots.id"), unique=True)
+    mode: Mapped[str]
+    author: Mapped[str]
+    model: Mapped[str]
+    candidate: Mapped[dict | None] = mapped_column(JSON)
+    assessment: Mapped[dict | None] = mapped_column(JSON)
+    trace: Mapped[dict] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

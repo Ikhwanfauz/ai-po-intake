@@ -27,6 +27,8 @@ class Settings:
     ollama_url: str = field(default_factory=lambda: os.getenv("OLLAMA_URL", "http://127.0.0.1:11434"))
     model: str = field(default_factory=lambda: os.getenv("OLLAMA_MODEL", "qwen3:8b"))
     timeout: float = field(default_factory=lambda: float(os.getenv("OLLAMA_TIMEOUT", "180")))
+    graph_timeout: float = field(default_factory=lambda: float(os.getenv("PO_GRAPH_TIMEOUT", "45")))
+    graph_auto: bool = field(default_factory=lambda: os.getenv("PO_GRAPH_AUTO", "true").strip().lower() in {"true", "1"})
     reviewer: str = field(default_factory=lambda: os.getenv("DEMO_REVIEWER", "Meridian Demo Reviewer"))
     foreground: bool = field(default_factory=lambda: env_flag("PO_FOREGROUND_EXTRACTION"))
     extraction_lease: int = field(default_factory=lambda: int(os.getenv("PO_EXTRACTION_LEASE_SECONDS", "0")))
@@ -48,7 +50,8 @@ class Settings:
     notification_backoff: int = field(default_factory=lambda: int(os.getenv("PO_NOTIFICATION_BACKOFF_SECONDS", "30")))
 
     def __post_init__(self):
-        if min(self.extraction_max_attempts, self.notification_max_attempts, self.notification_lease, self.timeout) <= 0:
+        if min(self.extraction_max_attempts, self.notification_max_attempts, self.notification_lease,
+               self.timeout, self.graph_timeout) <= 0:
             raise ValueError("Timeouts, notification leases, and attempt limits must be positive.")
         if min(self.extraction_lease, self.extraction_backoff, self.notification_backoff) < 0:
             raise ValueError("Extraction lease and retry delays must be nonnegative.")

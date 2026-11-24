@@ -1,0 +1,4230 @@
+{
+  "corpus": "m4-held-out-v1",
+  "model": "qwen3:8b",
+  "model_digest": "500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41",
+  "runner": "0.30.11",
+  "langgraph": "1.2.24",
+  "model_options": {
+    "temperature": 0,
+    "num_ctx": 8192,
+    "seed": 42
+  },
+  "baseline_timeout": 180.0,
+  "graph_timeout": 45.0,
+  "review_tokens": 850,
+  "patch_tokens": 1600,
+  "cases": [
+    {
+      "id": "E01",
+      "category": "clean",
+      "expected_route": "ready",
+      "sha256": "243ff17203a33c08e5c5346fdbcc3d16a6c9a18f20c2d414b4e127ae38cdf367",
+      "run_order": [
+        "baseline",
+        "graph"
+      ],
+      "baseline": {
+        "fields": {
+          "po_number": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "customer_reference": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "currency": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "sku": {
+            "expected": 2,
+            "correct": 2,
+            "evidenced": 2,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "quantity": {
+            "expected": 2,
+            "correct": 2,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "unit_price": {
+            "expected": 2,
+            "correct": 2,
+            "evidenced": 2,
+            "expected_blank": 0,
+            "correct_blank": 0
+          }
+        },
+        "estimated_edits": 1,
+        "missing_rows": 0,
+        "extra_rows": 0,
+        "route": "extraction_review",
+        "route_correct": false,
+        "elapsed_ms": 7924,
+        "error": null,
+        "trace": {
+          "call_count": 1,
+          "rereads": 0,
+          "raw": "{\"po_number\":{\"value\":\"PO-E01\",\"page\":1,\"excerpt\":\"PO number: PO-E01\",\"alternatives\":[]},\"customer_reference\":{\"value\":\"CUST-101\",\"page\":1,\"excerpt\":\"Customer reference: CUST-101\",\"alternatives\":[]},\"currency\":{\"value\":\"MYR\",\"page\":1,\"excerpt\":\"Currency: MYR\",\"alternatives\":[]},\"lines\":[{\"sku\":{\"value\":\"BRG-6204\",\"page\":1,\"excerpt\":\"BRG-6204\",\"alternatives\":[]},\"quantity\":{\"value\":\"2\",\"page\":1,\"excerpt\":\"2\",\"alternatives\":[]},\"unit_price\":{\"value\":\"RM100.00\",\"page\":1,\"excerpt\":\"RM100.00\",\"alternatives\":[]},\"unit\":\"EA\"},{\"sku\":{\"value\":\"BELT-A42\",\"page\":1,\"excerpt\":\"BELT-A42\",\"alternatives\":[]},\"quantity\":{\"value\":\"3\",\"page\":1,\"excerpt\":\"3\",\"alternatives\":[]},\"unit_price\":{\"value\":\"RM45.50\",\"page\":1,\"excerpt\":\"RM45.50\",\"alternatives\":[]},\"unit\":\"EA\"}]}"
+        },
+        "proposal": {
+          "po_number": {
+            "value": "PO-E01",
+            "page": 1,
+            "excerpt": "PO number: PO-E01",
+            "alternatives": []
+          },
+          "customer_reference": {
+            "value": "CUST-101",
+            "page": 1,
+            "excerpt": "Customer reference: CUST-101",
+            "alternatives": []
+          },
+          "currency": {
+            "value": "MYR",
+            "page": 1,
+            "excerpt": "Currency: MYR",
+            "alternatives": []
+          },
+          "lines": [
+            {
+              "sku": {
+                "value": "BRG-6204",
+                "page": 1,
+                "excerpt": "BRG-6204",
+                "alternatives": []
+              },
+              "quantity": {
+                "value": "2",
+                "page": 1,
+                "excerpt": "2",
+                "alternatives": []
+              },
+              "unit_price": {
+                "value": "RM100.00",
+                "page": 1,
+                "excerpt": "RM100.00",
+                "alternatives": []
+              },
+              "unit": "EA"
+            },
+            {
+              "sku": {
+                "value": "BELT-A42",
+                "page": 1,
+                "excerpt": "BELT-A42",
+                "alternatives": []
+              },
+              "quantity": {
+                "value": "3",
+                "page": 1,
+                "excerpt": "3",
+                "alternatives": []
+              },
+              "unit_price": {
+                "value": "RM45.50",
+                "page": 1,
+                "excerpt": "RM45.50",
+                "alternatives": []
+              },
+              "unit": "EA"
+            }
+          ]
+        },
+        "issues": [
+          "Line 1 quantity: The quote repeats on the page. Select a more specific excerpt.",
+          "One or more PDF rows have no completely verified draft line."
+        ]
+      },
+      "graph": {
+        "fields": {
+          "po_number": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "customer_reference": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "currency": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "sku": {
+            "expected": 2,
+            "correct": 2,
+            "evidenced": 2,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "quantity": {
+            "expected": 2,
+            "correct": 2,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "unit_price": {
+            "expected": 2,
+            "correct": 2,
+            "evidenced": 2,
+            "expected_blank": 0,
+            "correct_blank": 0
+          }
+        },
+        "estimated_edits": 1,
+        "missing_rows": 0,
+        "extra_rows": 0,
+        "route": "extraction_review",
+        "route_correct": false,
+        "elapsed_ms": 15085,
+        "error": null,
+        "trace": {
+          "trigger": "Forced paired evaluation",
+          "decision": "escalate",
+          "reason": "The patch changed a field or page outside its reread scope.",
+          "initial_proposal": {
+            "po_number": {
+              "value": "PO-E01",
+              "page": 1,
+              "excerpt": "PO number: PO-E01",
+              "alternatives": []
+            },
+            "customer_reference": {
+              "value": "CUST-101",
+              "page": 1,
+              "excerpt": "Customer reference: CUST-101",
+              "alternatives": []
+            },
+            "currency": {
+              "value": "MYR",
+              "page": 1,
+              "excerpt": "Currency: MYR",
+              "alternatives": []
+            },
+            "lines": [
+              {
+                "sku": {
+                  "value": "BRG-6204",
+                  "page": 1,
+                  "excerpt": "BRG-6204",
+                  "alternatives": []
+                },
+                "quantity": {
+                  "value": "2",
+                  "page": 1,
+                  "excerpt": "2",
+                  "alternatives": []
+                },
+                "unit_price": {
+                  "value": "RM100.00",
+                  "page": 1,
+                  "excerpt": "RM100.00",
+                  "alternatives": []
+                },
+                "unit": "EA"
+              },
+              {
+                "sku": {
+                  "value": "BELT-A42",
+                  "page": 1,
+                  "excerpt": "BELT-A42",
+                  "alternatives": []
+                },
+                "quantity": {
+                  "value": "3",
+                  "page": 1,
+                  "excerpt": "3",
+                  "alternatives": []
+                },
+                "unit_price": {
+                  "value": "RM45.50",
+                  "page": 1,
+                  "excerpt": "RM45.50",
+                  "alternatives": []
+                },
+                "unit": "EA"
+              }
+            ]
+          },
+          "handoffs": [
+            {
+              "agent": "Extraction Agent",
+              "step": "initial extraction",
+              "pages": [
+                1
+              ],
+              "duration_ms": 7510,
+              "called": true,
+              "raw": "{\"po_number\":{\"value\":\"PO-E01\",\"page\":1,\"excerpt\":\"PO number: PO-E01\",\"alternatives\":[]},\"customer_reference\":{\"value\":\"CUST-101\",\"page\":1,\"excerpt\":\"Customer reference: CUST-101\",\"alternatives\":[]},\"currency\":{\"value\":\"MYR\",\"page\":1,\"excerpt\":\"Currency: MYR\",\"alternatives\":[]},\"lines\":[{\"sku\":{\"value\":\"BRG-6204\",\"page\":1,\"excerpt\":\"BRG-6204\",\"alternatives\":[]},\"quantity\":{\"value\":\"2\",\"page\":1,\"excerpt\":\"2\",\"alternatives\":[]},\"unit_price\":{\"value\":\"RM100.00\",\"page\":1,\"excerpt\":\"RM100.00\",\"alternatives\":[]},\"unit\":\"EA\"},{\"sku\":{\"value\":\"BELT-A42\",\"page\":1,\"excerpt\":\"BELT-A42\",\"alternatives\":[]},\"quantity\":{\"value\":\"3\",\"page\":1,\"excerpt\":\"3\",\"alternatives\":[]},\"unit_price\":{\"value\":\"RM45.50\",\"page\":1,\"excerpt\":\"RM45.50\",\"alternatives\":[]},\"unit\":\"EA\"}]}",
+              "source": null,
+              "reused_baseline": false
+            },
+            {
+              "agent": "Review Agent",
+              "step": "review initial proposal",
+              "called": true,
+              "pages": [
+                1
+              ],
+              "raw": "{\n  \"action\": \"reread\",\n  \"reason\": \"Line 1 quantity: The quote repeats on the page. Select a more specific excerpt.\",\n  \"targets\": [\n    {\n      \"page\": 1,\n      \"field\": \"lines.1.quantity\",\n      \"reason\": \"The quantity for line 1 is ambiguous due to repeated text on the page.\"\n    }\n  ]\n}",
+              "duration_ms": 3170,
+              "decision": {
+                "action": "reread",
+                "reason": "Line 1 quantity: The quote repeats on the page. Select a more specific excerpt.",
+                "targets": [
+                  {
+                    "page": 1,
+                    "field": "lines.1.quantity",
+                    "reason": "The quantity for line 1 is ambiguous due to repeated text on the page."
+                  }
+                ]
+              }
+            },
+            {
+              "agent": "Extraction Agent",
+              "step": "targeted reread",
+              "called": true,
+              "pages": [
+                1
+              ],
+              "raw": "{\"changes\": [{\"field\": \"lines.1.quantity\", \"proposal\": {\"value\": null, \"alternatives\": [\"2\", \"3\", \"1\"]}}, {\"field\": \"lines.1.quantity\", \"proposal\": {\"value\": \"2\", \"excerpt\": \"SKU                     Qty               Unit price\\n\\n   BRG-6204                2               RM100.00\", \"alternatives\": [\"2\", \"3\", \"1\"]}}]}",
+              "duration_ms": 4387,
+              "targets": [
+                {
+                  "page": 1,
+                  "field": "lines.1.quantity",
+                  "reason": "The quantity for line 1 is ambiguous due to repeated text on the page.",
+                  "row_sku": "BRG-6204",
+                  "prior_value": "2"
+                }
+              ],
+              "patch": {
+                "changes": [
+                  {
+                    "field": "lines.1.quantity",
+                    "proposal": {
+                      "value": null,
+                      "page": null,
+                      "excerpt": null,
+                      "alternatives": [
+                        "2",
+                        "3",
+                        "1"
+                      ]
+                    }
+                  },
+                  {
+                    "field": "lines.1.quantity",
+                    "proposal": {
+                      "value": "2",
+                      "page": null,
+                      "excerpt": "SKU                     Qty               Unit price\n\n   BRG-6204                2               RM100.00",
+                      "alternatives": [
+                        "2",
+                        "3",
+                        "1"
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "rereads": 1,
+          "call_count": 3,
+          "elapsed_ms": 15078,
+          "evidence_issues": [
+            "Line 1 quantity: The quote repeats on the page. Select a more specific excerpt.",
+            "One or more PDF rows have no completely verified draft line."
+          ]
+        },
+        "proposal": {
+          "po_number": {
+            "value": "PO-E01",
+            "page": 1,
+            "excerpt": "PO number: PO-E01",
+            "alternatives": []
+          },
+          "customer_reference": {
+            "value": "CUST-101",
+            "page": 1,
+            "excerpt": "Customer reference: CUST-101",
+            "alternatives": []
+          },
+          "currency": {
+            "value": "MYR",
+            "page": 1,
+            "excerpt": "Currency: MYR",
+            "alternatives": []
+          },
+          "lines": [
+            {
+              "sku": {
+                "value": "BRG-6204",
+                "page": 1,
+                "excerpt": "BRG-6204",
+                "alternatives": []
+              },
+              "quantity": {
+                "value": "2",
+                "page": 1,
+                "excerpt": "2",
+                "alternatives": []
+              },
+              "unit_price": {
+                "value": "RM100.00",
+                "page": 1,
+                "excerpt": "RM100.00",
+                "alternatives": []
+              },
+              "unit": "EA"
+            },
+            {
+              "sku": {
+                "value": "BELT-A42",
+                "page": 1,
+                "excerpt": "BELT-A42",
+                "alternatives": []
+              },
+              "quantity": {
+                "value": "3",
+                "page": 1,
+                "excerpt": "3",
+                "alternatives": []
+              },
+              "unit_price": {
+                "value": "RM45.50",
+                "page": 1,
+                "excerpt": "RM45.50",
+                "alternatives": []
+              },
+              "unit": "EA"
+            }
+          ]
+        },
+        "issues": [
+          "Line 1 quantity: The quote repeats on the page. Select a more specific excerpt.",
+          "One or more PDF rows have no completely verified draft line.",
+          "LangGraph review requires staff resolution: The patch changed a field or page outside its reread scope."
+        ]
+      }
+    },
+    {
+      "id": "E02",
+      "category": "clean",
+      "expected_route": "ready",
+      "sha256": "f345804378b4c54fb50b9d2fa60041350b903eddf2e37ee462bbf8c47f309b22",
+      "run_order": [
+        "graph",
+        "baseline"
+      ],
+      "graph": {
+        "fields": {
+          "po_number": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "customer_reference": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "currency": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "sku": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "quantity": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "unit_price": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          }
+        },
+        "estimated_edits": 0,
+        "missing_rows": 0,
+        "extra_rows": 0,
+        "route": "ready",
+        "route_correct": true,
+        "elapsed_ms": 7928,
+        "error": null,
+        "trace": {
+          "trigger": "Forced paired evaluation",
+          "decision": "accept",
+          "reason": "All required fields are present and correctly mapped. No missing rows or unresolved evidence issues.",
+          "initial_proposal": {
+            "po_number": {
+              "value": "PO-E02",
+              "page": 1,
+              "excerpt": "PO number: PO-E02",
+              "alternatives": []
+            },
+            "customer_reference": {
+              "value": "CUST-101",
+              "page": 1,
+              "excerpt": "Customer reference: CUST-101",
+              "alternatives": []
+            },
+            "currency": {
+              "value": "MYR",
+              "page": 1,
+              "excerpt": "Currency: MYR",
+              "alternatives": []
+            },
+            "lines": [
+              {
+                "sku": {
+                  "value": "BELT-A42",
+                  "page": 1,
+                  "excerpt": "SKU                         Qty               Unit price\n\n  BELT-A42                     5              RM45.5",
+                  "alternatives": []
+                },
+                "quantity": {
+                  "value": "5",
+                  "page": 1,
+                  "excerpt": "SKU                         Qty               Unit price\n\n  BELT-A42                     5              RM45.5",
+                  "alternatives": []
+                },
+                "unit_price": {
+                  "value": "RM45.5",
+                  "page": 1,
+                  "excerpt": "SKU                         Qty               Unit price\n\n  BELT-A42                     5              RM45.5",
+                  "alternatives": []
+                },
+                "unit": null
+              }
+            ]
+          },
+          "handoffs": [
+            {
+              "agent": "Extraction Agent",
+              "step": "initial extraction",
+              "pages": [
+                1
+              ],
+              "duration_ms": 6114,
+              "called": true,
+              "raw": "{\"po_number\":{\"value\":\"PO-E02\",\"page\":1,\"excerpt\":\"PO number: PO-E02\",\"alternatives\":[]},\"customer_reference\":{\"value\":\"CUST-101\",\"page\":1,\"excerpt\":\"Customer reference: CUST-101\",\"alternatives\":[]},\"currency\":{\"value\":\"MYR\",\"page\":1,\"excerpt\":\"Currency: MYR\",\"alternatives\":[]},\"lines\":[{\"sku\":{\"value\":\"BELT-A42\",\"page\":1,\"excerpt\":\"SKU                         Qty               Unit price\\n\\n  BELT-A42                     5              RM45.5\",\"alternatives\":[]},\"quantity\":{\"value\":\"5\",\"page\":1,\"excerpt\":\"SKU                         Qty               Unit price\\n\\n  BELT-A42                     5              RM45.5\",\"alternatives\":[]},\"unit_price\":{\"value\":\"RM45.5\",\"page\":1,\"excerpt\":\"SKU                         Qty               Unit price\\n\\n  BELT-A42                     5              RM45.5\",\"alternatives\":[]},\"unit\":null}]}",
+              "source": null,
+              "reused_baseline": false
+            },
+            {
+              "agent": "Review Agent",
+              "step": "review initial proposal",
+              "called": true,
+              "pages": [
+                1
+              ],
+              "raw": "{\"action\": \"accept\", \"reason\": \"All required fields are present and correctly mapped. No missing rows or unresolved evidence issues.\", \"targets\": []}",
+              "duration_ms": 1801,
+              "decision": {
+                "action": "accept",
+                "reason": "All required fields are present and correctly mapped. No missing rows or unresolved evidence issues.",
+                "targets": []
+              }
+            }
+          ],
+          "rereads": 0,
+          "call_count": 2,
+          "elapsed_ms": 7923,
+          "evidence_issues": []
+        },
+        "proposal": {
+          "po_number": {
+            "value": "PO-E02",
+            "page": 1,
+            "excerpt": "PO number: PO-E02",
+            "alternatives": []
+          },
+          "customer_reference": {
+            "value": "CUST-101",
+            "page": 1,
+            "excerpt": "Customer reference: CUST-101",
+            "alternatives": []
+          },
+          "currency": {
+            "value": "MYR",
+            "page": 1,
+            "excerpt": "Currency: MYR",
+            "alternatives": []
+          },
+          "lines": [
+            {
+              "sku": {
+                "value": "BELT-A42",
+                "page": 1,
+                "excerpt": "SKU                         Qty               Unit price\n\n  BELT-A42                     5              RM45.5",
+                "alternatives": []
+              },
+              "quantity": {
+                "value": "5",
+                "page": 1,
+                "excerpt": "SKU                         Qty               Unit price\n\n  BELT-A42                     5              RM45.5",
+                "alternatives": []
+              },
+              "unit_price": {
+                "value": "RM45.5",
+                "page": 1,
+                "excerpt": "SKU                         Qty               Unit price\n\n  BELT-A42                     5              RM45.5",
+                "alternatives": []
+              },
+              "unit": null
+            }
+          ]
+        },
+        "issues": []
+      },
+      "baseline": {
+        "fields": {
+          "po_number": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "customer_reference": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "currency": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "sku": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "quantity": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "unit_price": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          }
+        },
+        "estimated_edits": 0,
+        "missing_rows": 0,
+        "extra_rows": 0,
+        "route": "ready",
+        "route_correct": true,
+        "elapsed_ms": 6097,
+        "error": null,
+        "trace": {
+          "call_count": 1,
+          "rereads": 0,
+          "raw": "{\"po_number\":{\"value\":\"PO-E02\",\"page\":1,\"excerpt\":\"PO number: PO-E02\",\"alternatives\":[]},\"customer_reference\":{\"value\":\"CUST-101\",\"page\":1,\"excerpt\":\"Customer reference: CUST-101\",\"alternatives\":[]},\"currency\":{\"value\":\"MYR\",\"page\":1,\"excerpt\":\"Currency: MYR\",\"alternatives\":[]},\"lines\":[{\"sku\":{\"value\":\"BELT-A42\",\"page\":1,\"excerpt\":\"SKU                         Qty               Unit price\\n\\n  BELT-A42                     5              RM45.5\",\"alternatives\":[]},\"quantity\":{\"value\":\"5\",\"page\":1,\"excerpt\":\"SKU                         Qty               Unit price\\n\\n  BELT-A42                     5              RM45.5\",\"alternatives\":[]},\"unit_price\":{\"value\":\"RM45.5\",\"page\":1,\"excerpt\":\"SKU                         Qty               Unit price\\n\\n  BELT-A42                     5              RM45.5\",\"alternatives\":[]},\"unit\":null}]}"
+        },
+        "proposal": {
+          "po_number": {
+            "value": "PO-E02",
+            "page": 1,
+            "excerpt": "PO number: PO-E02",
+            "alternatives": []
+          },
+          "customer_reference": {
+            "value": "CUST-101",
+            "page": 1,
+            "excerpt": "Customer reference: CUST-101",
+            "alternatives": []
+          },
+          "currency": {
+            "value": "MYR",
+            "page": 1,
+            "excerpt": "Currency: MYR",
+            "alternatives": []
+          },
+          "lines": [
+            {
+              "sku": {
+                "value": "BELT-A42",
+                "page": 1,
+                "excerpt": "SKU                         Qty               Unit price\n\n  BELT-A42                     5              RM45.5",
+                "alternatives": []
+              },
+              "quantity": {
+                "value": "5",
+                "page": 1,
+                "excerpt": "SKU                         Qty               Unit price\n\n  BELT-A42                     5              RM45.5",
+                "alternatives": []
+              },
+              "unit_price": {
+                "value": "RM45.5",
+                "page": 1,
+                "excerpt": "SKU                         Qty               Unit price\n\n  BELT-A42                     5              RM45.5",
+                "alternatives": []
+              },
+              "unit": null
+            }
+          ]
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "E03",
+      "category": "multipage",
+      "expected_route": "ready",
+      "sha256": "233e8fbcb48f5e691f9e3c3c45a23b0b8f597820f2c26571688a016ab1362317",
+      "run_order": [
+        "baseline",
+        "graph"
+      ],
+      "baseline": {
+        "fields": {
+          "po_number": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "customer_reference": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "currency": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "sku": {
+            "expected": 2,
+            "correct": 2,
+            "evidenced": 2,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "quantity": {
+            "expected": 2,
+            "correct": 2,
+            "evidenced": 2,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "unit_price": {
+            "expected": 2,
+            "correct": 2,
+            "evidenced": 2,
+            "expected_blank": 0,
+            "correct_blank": 0
+          }
+        },
+        "estimated_edits": 0,
+        "missing_rows": 0,
+        "extra_rows": 0,
+        "route": "ready",
+        "route_correct": true,
+        "elapsed_ms": 9886,
+        "error": null,
+        "trace": {
+          "call_count": 1,
+          "rereads": 0,
+          "raw": "{\"po_number\":{\"value\":\"PO-E03\",\"page\":1,\"excerpt\":\"PO number: PO-E03\",\"alternatives\":[]},\"customer_reference\":{\"value\":\"CUST-101\",\"page\":1,\"excerpt\":\"Customer reference: CUST-101\",\"alternatives\":[]},\"currency\":{\"value\":\"MYR\",\"page\":1,\"excerpt\":\"Currency: MYR\",\"alternatives\":[]},\"lines\":[{\"sku\":{\"value\":\"BRG-6204\",\"page\":1,\"excerpt\":\"SKU                         Qty               Unit price\\n\\n  BRG-6204                     2              RM100.00\",\"alternatives\":[]},\"quantity\":{\"value\":\"2\",\"page\":1,\"excerpt\":\"SKU                         Qty               Unit price\\n\\n  BRG-6204                     2              RM100.00\",\"alternatives\":[]},\"unit_price\":{\"value\":\"RM100.00\",\"page\":1,\"excerpt\":\"SKU                         Qty               Unit price\\n\\n  BRG-6204                     2              RM100.00\",\"alternatives\":[]},\"unit\":null},{\"sku\":{\"value\":\"BELT-A42\",\"page\":2,\"excerpt\":\"SKU                         Qty               Unit price\\n\\n  BELT-A42                     3              RM45.50\",\"alternatives\":[]},\"quantity\":{\"value\":\"3\",\"page\":2,\"excerpt\":\"SKU                         Qty               Unit price\\n\\n  BELT-A42                     3              RM45.50\",\"alternatives\":[]},\"unit_price\":{\"value\":\"RM45.50\",\"page\":2,\"excerpt\":\"SKU                         Qty               Unit price\\n\\n  BELT-A42                     3              RM45.50\",\"alternatives\":[]},\"unit\":null}]}"
+        },
+        "proposal": {
+          "po_number": {
+            "value": "PO-E03",
+            "page": 1,
+            "excerpt": "PO number: PO-E03",
+            "alternatives": []
+          },
+          "customer_reference": {
+            "value": "CUST-101",
+            "page": 1,
+            "excerpt": "Customer reference: CUST-101",
+            "alternatives": []
+          },
+          "currency": {
+            "value": "MYR",
+            "page": 1,
+            "excerpt": "Currency: MYR",
+            "alternatives": []
+          },
+          "lines": [
+            {
+              "sku": {
+                "value": "BRG-6204",
+                "page": 1,
+                "excerpt": "SKU                         Qty               Unit price\n\n  BRG-6204                     2              RM100.00",
+                "alternatives": []
+              },
+              "quantity": {
+                "value": "2",
+                "page": 1,
+                "excerpt": "SKU                         Qty               Unit price\n\n  BRG-6204                     2              RM100.00",
+                "alternatives": []
+              },
+              "unit_price": {
+                "value": "RM100.00",
+                "page": 1,
+                "excerpt": "SKU                         Qty               Unit price\n\n  BRG-6204                     2              RM100.00",
+                "alternatives": []
+              },
+              "unit": null
+            },
+            {
+              "sku": {
+                "value": "BELT-A42",
+                "page": 2,
+                "excerpt": "SKU                         Qty               Unit price\n\n  BELT-A42                     3              RM45.50",
+                "alternatives": []
+              },
+              "quantity": {
+                "value": "3",
+                "page": 2,
+                "excerpt": "SKU                         Qty               Unit price\n\n  BELT-A42                     3              RM45.50",
+                "alternatives": []
+              },
+              "unit_price": {
+                "value": "RM45.50",
+                "page": 2,
+                "excerpt": "SKU                         Qty               Unit price\n\n  BELT-A42                     3              RM45.50",
+                "alternatives": []
+              },
+              "unit": null
+            }
+          ]
+        },
+        "issues": []
+      },
+      "graph": {
+        "fields": {
+          "po_number": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "customer_reference": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "currency": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "sku": {
+            "expected": 2,
+            "correct": 2,
+            "evidenced": 2,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "quantity": {
+            "expected": 2,
+            "correct": 2,
+            "evidenced": 2,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "unit_price": {
+            "expected": 2,
+            "correct": 2,
+            "evidenced": 2,
+            "expected_blank": 0,
+            "correct_blank": 0
+          }
+        },
+        "estimated_edits": 0,
+        "missing_rows": 0,
+        "extra_rows": 0,
+        "route": "ready",
+        "route_correct": true,
+        "elapsed_ms": 11742,
+        "error": null,
+        "trace": {
+          "trigger": "Forced paired evaluation",
+          "decision": "accept",
+          "reason": "All required fields are present and correctly mapped. No missing rows or unresolved evidence issues.",
+          "initial_proposal": {
+            "po_number": {
+              "value": "PO-E03",
+              "page": 1,
+              "excerpt": "PO number: PO-E03",
+              "alternatives": []
+            },
+            "customer_reference": {
+              "value": "CUST-101",
+              "page": 1,
+              "excerpt": "Customer reference: CUST-101",
+              "alternatives": []
+            },
+            "currency": {
+              "value": "MYR",
+              "page": 1,
+              "excerpt": "Currency: MYR",
+              "alternatives": []
+            },
+            "lines": [
+              {
+                "sku": {
+                  "value": "BRG-6204",
+                  "page": 1,
+                  "excerpt": "SKU                         Qty               Unit price\n\n  BRG-6204                     2              RM100.00",
+                  "alternatives": []
+                },
+                "quantity": {
+                  "value": "2",
+                  "page": 1,
+                  "excerpt": "SKU                         Qty               Unit price\n\n  BRG-6204                     2              RM100.00",
+                  "alternatives": []
+                },
+                "unit_price": {
+                  "value": "RM100.00",
+                  "page": 1,
+                  "excerpt": "SKU                         Qty               Unit price\n\n  BRG-6204                     2              RM100.00",
+                  "alternatives": []
+                },
+                "unit": null
+              },
+              {
+                "sku": {
+                  "value": "BELT-A42",
+                  "page": 2,
+                  "excerpt": "SKU                         Qty               Unit price\n\n  BELT-A42                     3              RM45.50",
+                  "alternatives": []
+                },
+                "quantity": {
+                  "value": "3",
+                  "page": 2,
+                  "excerpt": "SKU                         Qty               Unit price\n\n  BELT-A42                     3              RM45.50",
+                  "alternatives": []
+                },
+                "unit_price": {
+                  "value": "RM45.50",
+                  "page": 2,
+                  "excerpt": "SKU                         Qty               Unit price\n\n  BELT-A42                     3              RM45.50",
+                  "alternatives": []
+                },
+                "unit": null
+              }
+            ]
+          },
+          "handoffs": [
+            {
+              "agent": "Extraction Agent",
+              "step": "initial extraction",
+              "pages": [
+                1,
+                2
+              ],
+              "duration_ms": 9806,
+              "called": true,
+              "raw": "{\"po_number\":{\"value\":\"PO-E03\",\"page\":1,\"excerpt\":\"PO number: PO-E03\",\"alternatives\":[]},\"customer_reference\":{\"value\":\"CUST-101\",\"page\":1,\"excerpt\":\"Customer reference: CUST-101\",\"alternatives\":[]},\"currency\":{\"value\":\"MYR\",\"page\":1,\"excerpt\":\"Currency: MYR\",\"alternatives\":[]},\"lines\":[{\"sku\":{\"value\":\"BRG-6204\",\"page\":1,\"excerpt\":\"SKU                         Qty               Unit price\\n\\n  BRG-6204                     2              RM100.00\",\"alternatives\":[]},\"quantity\":{\"value\":\"2\",\"page\":1,\"excerpt\":\"SKU                         Qty               Unit price\\n\\n  BRG-6204                     2              RM100.00\",\"alternatives\":[]},\"unit_price\":{\"value\":\"RM100.00\",\"page\":1,\"excerpt\":\"SKU                         Qty               Unit price\\n\\n  BRG-6204                     2              RM100.00\",\"alternatives\":[]},\"unit\":null},{\"sku\":{\"value\":\"BELT-A42\",\"page\":2,\"excerpt\":\"SKU                         Qty               Unit price\\n\\n  BELT-A42                     3              RM45.50\",\"alternatives\":[]},\"quantity\":{\"value\":\"3\",\"page\":2,\"excerpt\":\"SKU                         Qty               Unit price\\n\\n  BELT-A42                     3              RM45.50\",\"alternatives\":[]},\"unit_price\":{\"value\":\"RM45.50\",\"page\":2,\"excerpt\":\"SKU                         Qty               Unit price\\n\\n  BELT-A42                     3              RM45.50\",\"alternatives\":[]},\"unit\":null}]}",
+              "source": null,
+              "reused_baseline": false
+            },
+            {
+              "agent": "Review Agent",
+              "step": "review initial proposal",
+              "called": true,
+              "pages": [
+                1,
+                2
+              ],
+              "raw": "{\"action\": \"accept\", \"reason\": \"All required fields are present and correctly mapped. No missing rows or unresolved evidence issues.\", \"targets\": []}",
+              "duration_ms": 1918,
+              "decision": {
+                "action": "accept",
+                "reason": "All required fields are present and correctly mapped. No missing rows or unresolved evidence issues.",
+                "targets": []
+              }
+            }
+          ],
+          "rereads": 0,
+          "call_count": 2,
+          "elapsed_ms": 11735,
+          "evidence_issues": []
+        },
+        "proposal": {
+          "po_number": {
+            "value": "PO-E03",
+            "page": 1,
+            "excerpt": "PO number: PO-E03",
+            "alternatives": []
+          },
+          "customer_reference": {
+            "value": "CUST-101",
+            "page": 1,
+            "excerpt": "Customer reference: CUST-101",
+            "alternatives": []
+          },
+          "currency": {
+            "value": "MYR",
+            "page": 1,
+            "excerpt": "Currency: MYR",
+            "alternatives": []
+          },
+          "lines": [
+            {
+              "sku": {
+                "value": "BRG-6204",
+                "page": 1,
+                "excerpt": "SKU                         Qty               Unit price\n\n  BRG-6204                     2              RM100.00",
+                "alternatives": []
+              },
+              "quantity": {
+                "value": "2",
+                "page": 1,
+                "excerpt": "SKU                         Qty               Unit price\n\n  BRG-6204                     2              RM100.00",
+                "alternatives": []
+              },
+              "unit_price": {
+                "value": "RM100.00",
+                "page": 1,
+                "excerpt": "SKU                         Qty               Unit price\n\n  BRG-6204                     2              RM100.00",
+                "alternatives": []
+              },
+              "unit": null
+            },
+            {
+              "sku": {
+                "value": "BELT-A42",
+                "page": 2,
+                "excerpt": "SKU                         Qty               Unit price\n\n  BELT-A42                     3              RM45.50",
+                "alternatives": []
+              },
+              "quantity": {
+                "value": "3",
+                "page": 2,
+                "excerpt": "SKU                         Qty               Unit price\n\n  BELT-A42                     3              RM45.50",
+                "alternatives": []
+              },
+              "unit_price": {
+                "value": "RM45.50",
+                "page": 2,
+                "excerpt": "SKU                         Qty               Unit price\n\n  BELT-A42                     3              RM45.50",
+                "alternatives": []
+              },
+              "unit": null
+            }
+          ]
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "E04",
+      "category": "multipage alias",
+      "expected_route": "ready",
+      "sha256": "e9943d68e485e16a13324f9010872b6ec9ca4d785c1246536dd230408bf15221",
+      "run_order": [
+        "graph",
+        "baseline"
+      ],
+      "graph": {
+        "fields": {
+          "po_number": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "customer_reference": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "currency": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "sku": {
+            "expected": 2,
+            "correct": 2,
+            "evidenced": 2,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "quantity": {
+            "expected": 2,
+            "correct": 2,
+            "evidenced": 2,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "unit_price": {
+            "expected": 2,
+            "correct": 2,
+            "evidenced": 2,
+            "expected_blank": 0,
+            "correct_blank": 0
+          }
+        },
+        "estimated_edits": 0,
+        "missing_rows": 0,
+        "extra_rows": 0,
+        "route": "ready",
+        "route_correct": true,
+        "elapsed_ms": 11794,
+        "error": null,
+        "trace": {
+          "trigger": "Forced paired evaluation",
+          "decision": "accept",
+          "reason": "All required fields are present and correctly mapped. No missing rows or unresolved evidence issues.",
+          "initial_proposal": {
+            "po_number": {
+              "value": "PO-E04",
+              "page": 1,
+              "excerpt": "PO number: PO-E04",
+              "alternatives": []
+            },
+            "customer_reference": {
+              "value": "CUST-101",
+              "page": 1,
+              "excerpt": "Customer reference: CUST-101",
+              "alternatives": []
+            },
+            "currency": {
+              "value": "MYR",
+              "page": 1,
+              "excerpt": "Currency: MYR",
+              "alternatives": []
+            },
+            "lines": [
+              {
+                "sku": {
+                  "value": "6204-BRG",
+                  "page": 1,
+                  "excerpt": "SKU                     Qty               Unit price\n\n   6204-BRG                7             RM100",
+                  "alternatives": []
+                },
+                "quantity": {
+                  "value": "7",
+                  "page": 1,
+                  "excerpt": "SKU                     Qty               Unit price\n\n   6204-BRG                7             RM100",
+                  "alternatives": []
+                },
+                "unit_price": {
+                  "value": "RM100",
+                  "page": 1,
+                  "excerpt": "SKU                     Qty               Unit price\n\n   6204-BRG                7             RM100",
+                  "alternatives": []
+                },
+                "unit": "EA"
+              },
+              {
+                "sku": {
+                  "value": "BELT-A42",
+                  "page": 2,
+                  "excerpt": "SKU                     Qty               Unit price\n\n   BELT-A42                3               RM45.50",
+                  "alternatives": []
+                },
+                "quantity": {
+                  "value": "3",
+                  "page": 2,
+                  "excerpt": "SKU                     Qty               Unit price\n\n   BELT-A42                3               RM45.50",
+                  "alternatives": []
+                },
+                "unit_price": {
+                  "value": "RM45.50",
+                  "page": 2,
+                  "excerpt": "SKU                     Qty               Unit price\n\n   BELT-A42                3               RM45.50",
+                  "alternatives": []
+                },
+                "unit": "EA"
+              }
+            ]
+          },
+          "handoffs": [
+            {
+              "agent": "Extraction Agent",
+              "step": "initial extraction",
+              "pages": [
+                1,
+                2
+              ],
+              "duration_ms": 9777,
+              "called": true,
+              "raw": "{\"po_number\":{\"value\":\"PO-E04\",\"page\":1,\"excerpt\":\"PO number: PO-E04\",\"alternatives\":[]},\"customer_reference\":{\"value\":\"CUST-101\",\"page\":1,\"excerpt\":\"Customer reference: CUST-101\",\"alternatives\":[]},\"currency\":{\"value\":\"MYR\",\"page\":1,\"excerpt\":\"Currency: MYR\",\"alternatives\":[]},\"lines\":[{\"sku\":{\"value\":\"6204-BRG\",\"page\":1,\"excerpt\":\"SKU                     Qty               Unit price\\n\\n   6204-BRG                7             RM100\",\"alternatives\":[]},\"quantity\":{\"value\":\"7\",\"page\":1,\"excerpt\":\"SKU                     Qty               Unit price\\n\\n   6204-BRG                7             RM100\",\"alternatives\":[]},\"unit_price\":{\"value\":\"RM100\",\"page\":1,\"excerpt\":\"SKU                     Qty               Unit price\\n\\n   6204-BRG                7             RM100\",\"alternatives\":[]},\"unit\":\"EA\"},{\"sku\":{\"value\":\"BELT-A42\",\"page\":2,\"excerpt\":\"SKU                     Qty               Unit price\\n\\n   BELT-A42                3               RM45.50\",\"alternatives\":[]},\"quantity\":{\"value\":\"3\",\"page\":2,\"excerpt\":\"SKU                     Qty               Unit price\\n\\n   BELT-A42                3               RM45.50\",\"alternatives\":[]},\"unit_price\":{\"value\":\"RM45.50\",\"page\":2,\"excerpt\":\"SKU                     Qty               Unit price\\n\\n   BELT-A42                3               RM45.50\",\"alternatives\":[]},\"unit\":\"EA\"}]}",
+              "source": null,
+              "reused_baseline": false
+            },
+            {
+              "agent": "Review Agent",
+              "step": "review initial proposal",
+              "called": true,
+              "pages": [
+                1,
+                2
+              ],
+              "raw": "{\"action\": \"accept\", \"reason\": \"All required fields are present and correctly mapped. No missing rows or unresolved evidence issues.\", \"targets\": []}",
+              "duration_ms": 1996,
+              "decision": {
+                "action": "accept",
+                "reason": "All required fields are present and correctly mapped. No missing rows or unresolved evidence issues.",
+                "targets": []
+              }
+            }
+          ],
+          "rereads": 0,
+          "call_count": 2,
+          "elapsed_ms": 11782,
+          "evidence_issues": []
+        },
+        "proposal": {
+          "po_number": {
+            "value": "PO-E04",
+            "page": 1,
+            "excerpt": "PO number: PO-E04",
+            "alternatives": []
+          },
+          "customer_reference": {
+            "value": "CUST-101",
+            "page": 1,
+            "excerpt": "Customer reference: CUST-101",
+            "alternatives": []
+          },
+          "currency": {
+            "value": "MYR",
+            "page": 1,
+            "excerpt": "Currency: MYR",
+            "alternatives": []
+          },
+          "lines": [
+            {
+              "sku": {
+                "value": "6204-BRG",
+                "page": 1,
+                "excerpt": "SKU                     Qty               Unit price\n\n   6204-BRG                7             RM100",
+                "alternatives": []
+              },
+              "quantity": {
+                "value": "7",
+                "page": 1,
+                "excerpt": "SKU                     Qty               Unit price\n\n   6204-BRG                7             RM100",
+                "alternatives": []
+              },
+              "unit_price": {
+                "value": "RM100",
+                "page": 1,
+                "excerpt": "SKU                     Qty               Unit price\n\n   6204-BRG                7             RM100",
+                "alternatives": []
+              },
+              "unit": "EA"
+            },
+            {
+              "sku": {
+                "value": "BELT-A42",
+                "page": 2,
+                "excerpt": "SKU                     Qty               Unit price\n\n   BELT-A42                3               RM45.50",
+                "alternatives": []
+              },
+              "quantity": {
+                "value": "3",
+                "page": 2,
+                "excerpt": "SKU                     Qty               Unit price\n\n   BELT-A42                3               RM45.50",
+                "alternatives": []
+              },
+              "unit_price": {
+                "value": "RM45.50",
+                "page": 2,
+                "excerpt": "SKU                     Qty               Unit price\n\n   BELT-A42                3               RM45.50",
+                "alternatives": []
+              },
+              "unit": "EA"
+            }
+          ]
+        },
+        "issues": []
+      },
+      "baseline": {
+        "fields": {
+          "po_number": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "customer_reference": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "currency": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "sku": {
+            "expected": 2,
+            "correct": 2,
+            "evidenced": 2,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "quantity": {
+            "expected": 2,
+            "correct": 2,
+            "evidenced": 2,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "unit_price": {
+            "expected": 2,
+            "correct": 2,
+            "evidenced": 2,
+            "expected_blank": 0,
+            "correct_blank": 0
+          }
+        },
+        "estimated_edits": 0,
+        "missing_rows": 0,
+        "extra_rows": 0,
+        "route": "ready",
+        "route_correct": true,
+        "elapsed_ms": 9433,
+        "error": null,
+        "trace": {
+          "call_count": 1,
+          "rereads": 0,
+          "raw": "{\"po_number\":{\"value\":\"PO-E04\",\"page\":1,\"excerpt\":\"PO number: PO-E04\",\"alternatives\":[]},\"customer_reference\":{\"value\":\"CUST-101\",\"page\":1,\"excerpt\":\"Customer reference: CUST-101\",\"alternatives\":[]},\"currency\":{\"value\":\"MYR\",\"page\":1,\"excerpt\":\"Currency: MYR\",\"alternatives\":[]},\"lines\":[{\"sku\":{\"value\":\"6204-BRG\",\"page\":1,\"excerpt\":\"SKU                     Qty               Unit price\\n\\n   6204-BRG                7             RM100\",\"alternatives\":[]},\"quantity\":{\"value\":\"7\",\"page\":1,\"excerpt\":\"SKU                     Qty               Unit price\\n\\n   6204-BRG                7             RM100\",\"alternatives\":[]},\"unit_price\":{\"value\":\"RM100\",\"page\":1,\"excerpt\":\"SKU                     Qty               Unit price\\n\\n   6204-BRG                7             RM100\",\"alternatives\":[]},\"unit\":\"EA\"},{\"sku\":{\"value\":\"BELT-A42\",\"page\":2,\"excerpt\":\"SKU                     Qty               Unit price\\n\\n   BELT-A42                3               RM45.50\",\"alternatives\":[]},\"quantity\":{\"value\":\"3\",\"page\":2,\"excerpt\":\"SKU                     Qty               Unit price\\n\\n   BELT-A42                3               RM45.50\",\"alternatives\":[]},\"unit_price\":{\"value\":\"RM45.50\",\"page\":2,\"excerpt\":\"SKU                     Qty               Unit price\\n\\n   BELT-A42                3               RM45.50\",\"alternatives\":[]},\"unit\":\"EA\"}]}"
+        },
+        "proposal": {
+          "po_number": {
+            "value": "PO-E04",
+            "page": 1,
+            "excerpt": "PO number: PO-E04",
+            "alternatives": []
+          },
+          "customer_reference": {
+            "value": "CUST-101",
+            "page": 1,
+            "excerpt": "Customer reference: CUST-101",
+            "alternatives": []
+          },
+          "currency": {
+            "value": "MYR",
+            "page": 1,
+            "excerpt": "Currency: MYR",
+            "alternatives": []
+          },
+          "lines": [
+            {
+              "sku": {
+                "value": "6204-BRG",
+                "page": 1,
+                "excerpt": "SKU                     Qty               Unit price\n\n   6204-BRG                7             RM100",
+                "alternatives": []
+              },
+              "quantity": {
+                "value": "7",
+                "page": 1,
+                "excerpt": "SKU                     Qty               Unit price\n\n   6204-BRG                7             RM100",
+                "alternatives": []
+              },
+              "unit_price": {
+                "value": "RM100",
+                "page": 1,
+                "excerpt": "SKU                     Qty               Unit price\n\n   6204-BRG                7             RM100",
+                "alternatives": []
+              },
+              "unit": "EA"
+            },
+            {
+              "sku": {
+                "value": "BELT-A42",
+                "page": 2,
+                "excerpt": "SKU                     Qty               Unit price\n\n   BELT-A42                3               RM45.50",
+                "alternatives": []
+              },
+              "quantity": {
+                "value": "3",
+                "page": 2,
+                "excerpt": "SKU                     Qty               Unit price\n\n   BELT-A42                3               RM45.50",
+                "alternatives": []
+              },
+              "unit_price": {
+                "value": "RM45.50",
+                "page": 2,
+                "excerpt": "SKU                     Qty               Unit price\n\n   BELT-A42                3               RM45.50",
+                "alternatives": []
+              },
+              "unit": "EA"
+            }
+          ]
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "E05",
+      "category": "price mismatch",
+      "expected_route": "business_review",
+      "sha256": "448a909701983947eede5043970c99887bd876c2054be9c17d2b047c4c0dd2e1",
+      "run_order": [
+        "baseline",
+        "graph"
+      ],
+      "baseline": {
+        "fields": {
+          "po_number": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "customer_reference": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "currency": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "sku": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "quantity": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 0,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "unit_price": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          }
+        },
+        "estimated_edits": 1,
+        "missing_rows": 0,
+        "extra_rows": 0,
+        "route": "extraction_review",
+        "route_correct": false,
+        "elapsed_ms": 5143,
+        "error": null,
+        "trace": {
+          "call_count": 1,
+          "rereads": 0,
+          "raw": "{\"po_number\":{\"value\":\"PO-E05\",\"page\":1,\"excerpt\":\"PO number: PO-E05\",\"alternatives\":[]},\"customer_reference\":{\"value\":\"CUST-101\",\"page\":1,\"excerpt\":\"Customer reference: CUST-101\",\"alternatives\":[]},\"currency\":{\"value\":\"MYR\",\"page\":1,\"excerpt\":\"Currency: MYR\",\"alternatives\":[]},\"lines\":[{\"sku\":{\"value\":\"BRG-6204\",\"page\":1,\"excerpt\":\"BRG-6204\",\"alternatives\":[]},\"quantity\":{\"value\":\"2\",\"page\":1,\"excerpt\":\"2\",\"alternatives\":[]},\"unit_price\":{\"value\":\"RM90.00\",\"page\":1,\"excerpt\":\"RM90.00\",\"alternatives\":[]},\"unit\":null}]}"
+        },
+        "proposal": {
+          "po_number": {
+            "value": "PO-E05",
+            "page": 1,
+            "excerpt": "PO number: PO-E05",
+            "alternatives": []
+          },
+          "customer_reference": {
+            "value": "CUST-101",
+            "page": 1,
+            "excerpt": "Customer reference: CUST-101",
+            "alternatives": []
+          },
+          "currency": {
+            "value": "MYR",
+            "page": 1,
+            "excerpt": "Currency: MYR",
+            "alternatives": []
+          },
+          "lines": [
+            {
+              "sku": {
+                "value": "BRG-6204",
+                "page": 1,
+                "excerpt": "BRG-6204",
+                "alternatives": []
+              },
+              "quantity": {
+                "value": "2",
+                "page": 1,
+                "excerpt": "2",
+                "alternatives": []
+              },
+              "unit_price": {
+                "value": "RM90.00",
+                "page": 1,
+                "excerpt": "RM90.00",
+                "alternatives": []
+              },
+              "unit": null
+            }
+          ]
+        },
+        "issues": [
+          "Line 1 unit price RM90.00 differs from agreed RM100.00.",
+          "Line 1 quantity: The quote repeats on the page. Select a more specific excerpt.",
+          "One or more PDF rows have no completely verified draft line."
+        ]
+      },
+      "graph": {
+        "fields": {
+          "po_number": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "customer_reference": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "currency": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "sku": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "quantity": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 0,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "unit_price": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          }
+        },
+        "estimated_edits": 1,
+        "missing_rows": 0,
+        "extra_rows": 0,
+        "route": "extraction_review",
+        "route_correct": false,
+        "elapsed_ms": 12224,
+        "error": null,
+        "trace": {
+          "trigger": "Forced paired evaluation",
+          "decision": "escalate",
+          "reason": "The patch changed a field or page outside its reread scope.",
+          "initial_proposal": {
+            "po_number": {
+              "value": "PO-E05",
+              "page": 1,
+              "excerpt": "PO number: PO-E05",
+              "alternatives": []
+            },
+            "customer_reference": {
+              "value": "CUST-101",
+              "page": 1,
+              "excerpt": "Customer reference: CUST-101",
+              "alternatives": []
+            },
+            "currency": {
+              "value": "MYR",
+              "page": 1,
+              "excerpt": "Currency: MYR",
+              "alternatives": []
+            },
+            "lines": [
+              {
+                "sku": {
+                  "value": "BRG-6204",
+                  "page": 1,
+                  "excerpt": "BRG-6204",
+                  "alternatives": []
+                },
+                "quantity": {
+                  "value": "2",
+                  "page": 1,
+                  "excerpt": "2",
+                  "alternatives": []
+                },
+                "unit_price": {
+                  "value": "RM90.00",
+                  "page": 1,
+                  "excerpt": "RM90.00",
+                  "alternatives": []
+                },
+                "unit": null
+              }
+            ]
+          },
+          "handoffs": [
+            {
+              "agent": "Extraction Agent",
+              "step": "initial extraction",
+              "pages": [
+                1
+              ],
+              "duration_ms": 4994,
+              "called": true,
+              "raw": "{\"po_number\":{\"value\":\"PO-E05\",\"page\":1,\"excerpt\":\"PO number: PO-E05\",\"alternatives\":[]},\"customer_reference\":{\"value\":\"CUST-101\",\"page\":1,\"excerpt\":\"Customer reference: CUST-101\",\"alternatives\":[]},\"currency\":{\"value\":\"MYR\",\"page\":1,\"excerpt\":\"Currency: MYR\",\"alternatives\":[]},\"lines\":[{\"sku\":{\"value\":\"BRG-6204\",\"page\":1,\"excerpt\":\"BRG-6204\",\"alternatives\":[]},\"quantity\":{\"value\":\"2\",\"page\":1,\"excerpt\":\"2\",\"alternatives\":[]},\"unit_price\":{\"value\":\"RM90.00\",\"page\":1,\"excerpt\":\"RM90.00\",\"alternatives\":[]},\"unit\":null}]}",
+              "source": null,
+              "reused_baseline": false
+            },
+            {
+              "agent": "Review Agent",
+              "step": "review initial proposal",
+              "called": true,
+              "pages": [
+                1
+              ],
+              "raw": "{\n  \"action\": \"reread\",\n  \"reason\": \"The line quantity is ambiguous due to the repeated text on the page. A more specific excerpt is needed to resolve the quantity.\",\n  \"targets\": [\n    {\n      \"page\": 1,\n      \"field\": \"lines.1.quantity\",\n      \"reason\": \"The quantity '2' is repeated on the page, and the exact line association is unclear.\"\n    }\n  ]\n}",
+              "duration_ms": 3221,
+              "decision": {
+                "action": "reread",
+                "reason": "The line quantity is ambiguous due to the repeated text on the page. A more specific excerpt is needed to resolve the quantity.",
+                "targets": [
+                  {
+                    "page": 1,
+                    "field": "lines.1.quantity",
+                    "reason": "The quantity '2' is repeated on the page, and the exact line association is unclear."
+                  }
+                ]
+              }
+            },
+            {
+              "agent": "Extraction Agent",
+              "step": "targeted reread",
+              "called": true,
+              "pages": [
+                1
+              ],
+              "raw": "{\"changes\": [{\"field\": \"lines.1.quantity\", \"proposal\": {\"value\": \"2\", \"page\": 1, \"excerpt\": \"SKU                     Qty               Unit price\\n\\n   BRG-6204                2               RM90.00\"}}, {\"field\": \"lines.1.sku\", \"proposal\": {\"value\": \"BRG-6204\", \"page\": 1, \"excerpt\": \"SKU                     Qty               Unit price\\n\\n   BRG-6204                2               RM90.00\"}}]}",
+              "duration_ms": 3997,
+              "targets": [
+                {
+                  "page": 1,
+                  "field": "lines.1.quantity",
+                  "reason": "The quantity '2' is repeated on the page, and the exact line association is unclear.",
+                  "row_sku": "BRG-6204",
+                  "prior_value": "2"
+                }
+              ],
+              "patch": {
+                "changes": [
+                  {
+                    "field": "lines.1.quantity",
+                    "proposal": {
+                      "value": "2",
+                      "page": 1,
+                      "excerpt": "SKU                     Qty               Unit price\n\n   BRG-6204                2               RM90.00",
+                      "alternatives": []
+                    }
+                  },
+                  {
+                    "field": "lines.1.sku",
+                    "proposal": {
+                      "value": "BRG-6204",
+                      "page": 1,
+                      "excerpt": "SKU                     Qty               Unit price\n\n   BRG-6204                2               RM90.00",
+                      "alternatives": []
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "rereads": 1,
+          "call_count": 3,
+          "elapsed_ms": 12220,
+          "evidence_issues": [
+            "Line 1 quantity: The quote repeats on the page. Select a more specific excerpt.",
+            "One or more PDF rows have no completely verified draft line."
+          ]
+        },
+        "proposal": {
+          "po_number": {
+            "value": "PO-E05",
+            "page": 1,
+            "excerpt": "PO number: PO-E05",
+            "alternatives": []
+          },
+          "customer_reference": {
+            "value": "CUST-101",
+            "page": 1,
+            "excerpt": "Customer reference: CUST-101",
+            "alternatives": []
+          },
+          "currency": {
+            "value": "MYR",
+            "page": 1,
+            "excerpt": "Currency: MYR",
+            "alternatives": []
+          },
+          "lines": [
+            {
+              "sku": {
+                "value": "BRG-6204",
+                "page": 1,
+                "excerpt": "BRG-6204",
+                "alternatives": []
+              },
+              "quantity": {
+                "value": "2",
+                "page": 1,
+                "excerpt": "2",
+                "alternatives": []
+              },
+              "unit_price": {
+                "value": "RM90.00",
+                "page": 1,
+                "excerpt": "RM90.00",
+                "alternatives": []
+              },
+              "unit": null
+            }
+          ]
+        },
+        "issues": [
+          "Line 1 unit price RM90.00 differs from agreed RM100.00.",
+          "Line 1 quantity: The quote repeats on the page. Select a more specific excerpt.",
+          "One or more PDF rows have no completely verified draft line.",
+          "LangGraph review requires staff resolution: The patch changed a field or page outside its reread scope."
+        ]
+      }
+    },
+    {
+      "id": "E06",
+      "category": "multipage price mismatch",
+      "expected_route": "business_review",
+      "sha256": "62c458f91cfe632c3b8afbfeec911fe32027e4b6e2b98bdf4ce7b9ecb0b6e6d8",
+      "run_order": [
+        "graph",
+        "baseline"
+      ],
+      "graph": {
+        "fields": {
+          "po_number": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "customer_reference": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "currency": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "sku": {
+            "expected": 2,
+            "correct": 2,
+            "evidenced": 2,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "quantity": {
+            "expected": 2,
+            "correct": 2,
+            "evidenced": 2,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "unit_price": {
+            "expected": 2,
+            "correct": 2,
+            "evidenced": 2,
+            "expected_blank": 0,
+            "correct_blank": 0
+          }
+        },
+        "estimated_edits": 0,
+        "missing_rows": 0,
+        "extra_rows": 0,
+        "route": "business_review",
+        "route_correct": true,
+        "elapsed_ms": 10742,
+        "error": null,
+        "trace": {
+          "trigger": "Forced paired evaluation",
+          "decision": "accept",
+          "reason": "All required fields are present and correctly mapped. No missing rows or unresolved evidence issues.",
+          "initial_proposal": {
+            "po_number": {
+              "value": "PO-E06",
+              "page": 1,
+              "excerpt": "PO number: PO-E06",
+              "alternatives": []
+            },
+            "customer_reference": {
+              "value": "CUST-101",
+              "page": 1,
+              "excerpt": "Customer reference: CUST-101",
+              "alternatives": []
+            },
+            "currency": {
+              "value": "MYR",
+              "page": 1,
+              "excerpt": "Currency: MYR",
+              "alternatives": []
+            },
+            "lines": [
+              {
+                "sku": {
+                  "value": "BELT-A42",
+                  "page": 1,
+                  "excerpt": "BELT-A42                     3              RM45.50",
+                  "alternatives": []
+                },
+                "quantity": {
+                  "value": "3",
+                  "page": 1,
+                  "excerpt": "BELT-A42                     3              RM45.50",
+                  "alternatives": []
+                },
+                "unit_price": {
+                  "value": "RM45.50",
+                  "page": 1,
+                  "excerpt": "BELT-A42                     3              RM45.50",
+                  "alternatives": []
+                },
+                "unit": null
+              },
+              {
+                "sku": {
+                  "value": "BRG-6204",
+                  "page": 2,
+                  "excerpt": "BRG-6204                     4              RM102.00",
+                  "alternatives": []
+                },
+                "quantity": {
+                  "value": "4",
+                  "page": 2,
+                  "excerpt": "BRG-6204                     4              RM102.00",
+                  "alternatives": []
+                },
+                "unit_price": {
+                  "value": "RM102.00",
+                  "page": 2,
+                  "excerpt": "BRG-6204                     4              RM102.00",
+                  "alternatives": []
+                },
+                "unit": null
+              }
+            ]
+          },
+          "handoffs": [
+            {
+              "agent": "Extraction Agent",
+              "step": "initial extraction",
+              "pages": [
+                1,
+                2
+              ],
+              "duration_ms": 8688,
+              "called": true,
+              "raw": "{\"po_number\":{\"value\":\"PO-E06\",\"page\":1,\"excerpt\":\"PO number: PO-E06\",\"alternatives\":[]},\"customer_reference\":{\"value\":\"CUST-101\",\"page\":1,\"excerpt\":\"Customer reference: CUST-101\",\"alternatives\":[]},\"currency\":{\"value\":\"MYR\",\"page\":1,\"excerpt\":\"Currency: MYR\",\"alternatives\":[]},\"lines\":[{\"sku\":{\"value\":\"BELT-A42\",\"page\":1,\"excerpt\":\"BELT-A42                     3              RM45.50\",\"alternatives\":[]},\"quantity\":{\"value\":\"3\",\"page\":1,\"excerpt\":\"BELT-A42                     3              RM45.50\",\"alternatives\":[]},\"unit_price\":{\"value\":\"RM45.50\",\"page\":1,\"excerpt\":\"BELT-A42                     3              RM45.50\",\"alternatives\":[]},\"unit\":null},{\"sku\":{\"value\":\"BRG-6204\",\"page\":2,\"excerpt\":\"BRG-6204                     4              RM102.00\",\"alternatives\":[]},\"quantity\":{\"value\":\"4\",\"page\":2,\"excerpt\":\"BRG-6204                     4              RM102.00\",\"alternatives\":[]},\"unit_price\":{\"value\":\"RM102.00\",\"page\":2,\"excerpt\":\"BRG-6204                     4              RM102.00\",\"alternatives\":[]},\"unit\":null}]}",
+              "source": null,
+              "reused_baseline": false
+            },
+            {
+              "agent": "Review Agent",
+              "step": "review initial proposal",
+              "called": true,
+              "pages": [
+                1,
+                2
+              ],
+              "raw": "{\"action\": \"accept\", \"reason\": \"All required fields are present and correctly mapped. No missing rows or unresolved evidence issues.\", \"targets\": []}",
+              "duration_ms": 2036,
+              "decision": {
+                "action": "accept",
+                "reason": "All required fields are present and correctly mapped. No missing rows or unresolved evidence issues.",
+                "targets": []
+              }
+            }
+          ],
+          "rereads": 0,
+          "call_count": 2,
+          "elapsed_ms": 10733,
+          "evidence_issues": []
+        },
+        "proposal": {
+          "po_number": {
+            "value": "PO-E06",
+            "page": 1,
+            "excerpt": "PO number: PO-E06",
+            "alternatives": []
+          },
+          "customer_reference": {
+            "value": "CUST-101",
+            "page": 1,
+            "excerpt": "Customer reference: CUST-101",
+            "alternatives": []
+          },
+          "currency": {
+            "value": "MYR",
+            "page": 1,
+            "excerpt": "Currency: MYR",
+            "alternatives": []
+          },
+          "lines": [
+            {
+              "sku": {
+                "value": "BELT-A42",
+                "page": 1,
+                "excerpt": "BELT-A42                     3              RM45.50",
+                "alternatives": []
+              },
+              "quantity": {
+                "value": "3",
+                "page": 1,
+                "excerpt": "BELT-A42                     3              RM45.50",
+                "alternatives": []
+              },
+              "unit_price": {
+                "value": "RM45.50",
+                "page": 1,
+                "excerpt": "BELT-A42                     3              RM45.50",
+                "alternatives": []
+              },
+              "unit": null
+            },
+            {
+              "sku": {
+                "value": "BRG-6204",
+                "page": 2,
+                "excerpt": "BRG-6204                     4              RM102.00",
+                "alternatives": []
+              },
+              "quantity": {
+                "value": "4",
+                "page": 2,
+                "excerpt": "BRG-6204                     4              RM102.00",
+                "alternatives": []
+              },
+              "unit_price": {
+                "value": "RM102.00",
+                "page": 2,
+                "excerpt": "BRG-6204                     4              RM102.00",
+                "alternatives": []
+              },
+              "unit": null
+            }
+          ]
+        },
+        "issues": [
+          "Line 2 unit price RM102.00 differs from agreed RM100.00."
+        ]
+      },
+      "baseline": {
+        "fields": {
+          "po_number": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "customer_reference": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "currency": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "sku": {
+            "expected": 2,
+            "correct": 2,
+            "evidenced": 2,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "quantity": {
+            "expected": 2,
+            "correct": 2,
+            "evidenced": 2,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "unit_price": {
+            "expected": 2,
+            "correct": 2,
+            "evidenced": 2,
+            "expected_blank": 0,
+            "correct_blank": 0
+          }
+        },
+        "estimated_edits": 0,
+        "missing_rows": 0,
+        "extra_rows": 0,
+        "route": "business_review",
+        "route_correct": true,
+        "elapsed_ms": 8561,
+        "error": null,
+        "trace": {
+          "call_count": 1,
+          "rereads": 0,
+          "raw": "{\"po_number\":{\"value\":\"PO-E06\",\"page\":1,\"excerpt\":\"PO number: PO-E06\",\"alternatives\":[]},\"customer_reference\":{\"value\":\"CUST-101\",\"page\":1,\"excerpt\":\"Customer reference: CUST-101\",\"alternatives\":[]},\"currency\":{\"value\":\"MYR\",\"page\":1,\"excerpt\":\"Currency: MYR\",\"alternatives\":[]},\"lines\":[{\"sku\":{\"value\":\"BELT-A42\",\"page\":1,\"excerpt\":\"BELT-A42                     3              RM45.50\",\"alternatives\":[]},\"quantity\":{\"value\":\"3\",\"page\":1,\"excerpt\":\"BELT-A42                     3              RM45.50\",\"alternatives\":[]},\"unit_price\":{\"value\":\"RM45.50\",\"page\":1,\"excerpt\":\"BELT-A42                     3              RM45.50\",\"alternatives\":[]},\"unit\":null},{\"sku\":{\"value\":\"BRG-6204\",\"page\":2,\"excerpt\":\"BRG-6204                     4              RM102.00\",\"alternatives\":[]},\"quantity\":{\"value\":\"4\",\"page\":2,\"excerpt\":\"BRG-6204                     4              RM102.00\",\"alternatives\":[]},\"unit_price\":{\"value\":\"RM102.00\",\"page\":2,\"excerpt\":\"BRG-6204                     4              RM102.00\",\"alternatives\":[]},\"unit\":null}]}"
+        },
+        "proposal": {
+          "po_number": {
+            "value": "PO-E06",
+            "page": 1,
+            "excerpt": "PO number: PO-E06",
+            "alternatives": []
+          },
+          "customer_reference": {
+            "value": "CUST-101",
+            "page": 1,
+            "excerpt": "Customer reference: CUST-101",
+            "alternatives": []
+          },
+          "currency": {
+            "value": "MYR",
+            "page": 1,
+            "excerpt": "Currency: MYR",
+            "alternatives": []
+          },
+          "lines": [
+            {
+              "sku": {
+                "value": "BELT-A42",
+                "page": 1,
+                "excerpt": "BELT-A42                     3              RM45.50",
+                "alternatives": []
+              },
+              "quantity": {
+                "value": "3",
+                "page": 1,
+                "excerpt": "BELT-A42                     3              RM45.50",
+                "alternatives": []
+              },
+              "unit_price": {
+                "value": "RM45.50",
+                "page": 1,
+                "excerpt": "BELT-A42                     3              RM45.50",
+                "alternatives": []
+              },
+              "unit": null
+            },
+            {
+              "sku": {
+                "value": "BRG-6204",
+                "page": 2,
+                "excerpt": "BRG-6204                     4              RM102.00",
+                "alternatives": []
+              },
+              "quantity": {
+                "value": "4",
+                "page": 2,
+                "excerpt": "BRG-6204                     4              RM102.00",
+                "alternatives": []
+              },
+              "unit_price": {
+                "value": "RM102.00",
+                "page": 2,
+                "excerpt": "BRG-6204                     4              RM102.00",
+                "alternatives": []
+              },
+              "unit": null
+            }
+          ]
+        },
+        "issues": [
+          "Line 2 unit price RM102.00 differs from agreed RM100.00."
+        ]
+      }
+    },
+    {
+      "id": "E07",
+      "category": "missing PO",
+      "expected_route": "extraction_review",
+      "sha256": "89c7e469e6af5894221c1e8c9a6b3c0742aef496658b14479a9bef2a681848c6",
+      "run_order": [
+        "baseline",
+        "graph"
+      ],
+      "baseline": {
+        "fields": {
+          "po_number": {
+            "expected": 0,
+            "correct": 0,
+            "evidenced": 0,
+            "expected_blank": 1,
+            "correct_blank": 0
+          },
+          "customer_reference": {
+            "expected": 1,
+            "correct": 0,
+            "evidenced": 0,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "currency": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "sku": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 0,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "quantity": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "unit_price": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          }
+        },
+        "estimated_edits": 3,
+        "missing_rows": 0,
+        "extra_rows": 0,
+        "route": "extraction_review",
+        "route_correct": true,
+        "elapsed_ms": 6239,
+        "error": null,
+        "trace": {
+          "call_count": 1,
+          "rereads": 0,
+          "raw": "{\"po_number\": {\"value\": \"CUST-101\", \"page\": 1, \"excerpt\": \"Customer reference: CUST-101\", \"alternatives\": []}, \"currency\": {\"value\": \"MYR\", \"page\": 1, \"excerpt\": \"Currency: MYR\", \"alternatives\": []}, \"lines\": [{\"sku\": {\"value\": \"BRG-6204\", \"page\": 1, \"excerpt\": \"SKU                     Qty               Unit price\", \"alternatives\": []}, \"quantity\": {\"value\": \"2\", \"page\": 1, \"excerpt\": \"BRG-6204                2               RM100.00\", \"alternatives\": []}, \"unit_price\": {\"value\": \"RM100.00\", \"page\": 1, \"excerpt\": \"BRG-6204                2               RM100.00\", \"alternatives\": []}, \"unit\": \"EA\"}]}"
+        },
+        "proposal": {
+          "po_number": {
+            "value": "CUST-101",
+            "page": 1,
+            "excerpt": "Customer reference: CUST-101",
+            "alternatives": []
+          },
+          "customer_reference": {
+            "value": null,
+            "page": null,
+            "excerpt": null,
+            "alternatives": []
+          },
+          "currency": {
+            "value": "MYR",
+            "page": 1,
+            "excerpt": "Currency: MYR",
+            "alternatives": []
+          },
+          "lines": [
+            {
+              "sku": {
+                "value": "BRG-6204",
+                "page": 1,
+                "excerpt": "SKU                     Qty               Unit price",
+                "alternatives": []
+              },
+              "quantity": {
+                "value": "2",
+                "page": 1,
+                "excerpt": "BRG-6204                2               RM100.00",
+                "alternatives": []
+              },
+              "unit_price": {
+                "value": "RM100.00",
+                "page": 1,
+                "excerpt": "BRG-6204                2               RM100.00",
+                "alternatives": []
+              },
+              "unit": "EA"
+            }
+          ]
+        },
+        "issues": [
+          "Customer reference is missing, ambiguous, or unknown.",
+          "Po number: The quote does not identify this value in its labeled field.",
+          "Customer reference: A single value is required.",
+          "Line 1 sku: The quote does not identify this value in the correct SKU row and column.",
+          "One or more PDF rows have no completely verified draft line."
+        ]
+      },
+      "graph": {
+        "fields": {
+          "po_number": {
+            "expected": 0,
+            "correct": 0,
+            "evidenced": 0,
+            "expected_blank": 1,
+            "correct_blank": 0
+          },
+          "customer_reference": {
+            "expected": 1,
+            "correct": 0,
+            "evidenced": 0,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "currency": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "sku": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 0,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "quantity": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "unit_price": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          }
+        },
+        "estimated_edits": 3,
+        "missing_rows": 0,
+        "extra_rows": 0,
+        "route": "extraction_review",
+        "route_correct": true,
+        "elapsed_ms": 15609,
+        "error": null,
+        "trace": {
+          "trigger": "Forced paired evaluation",
+          "decision": "escalate",
+          "reason": "The patch changed a field or page outside its reread scope.",
+          "initial_proposal": {
+            "po_number": {
+              "value": "CUST-101",
+              "page": 1,
+              "excerpt": "Customer reference: CUST-101",
+              "alternatives": []
+            },
+            "customer_reference": {
+              "value": null,
+              "page": null,
+              "excerpt": null,
+              "alternatives": []
+            },
+            "currency": {
+              "value": "MYR",
+              "page": 1,
+              "excerpt": "Currency: MYR",
+              "alternatives": []
+            },
+            "lines": [
+              {
+                "sku": {
+                  "value": "BRG-6204",
+                  "page": 1,
+                  "excerpt": "SKU                     Qty               Unit price",
+                  "alternatives": []
+                },
+                "quantity": {
+                  "value": "2",
+                  "page": 1,
+                  "excerpt": "BRG-6204                2               RM100.00",
+                  "alternatives": []
+                },
+                "unit_price": {
+                  "value": "RM100.00",
+                  "page": 1,
+                  "excerpt": "BRG-6204                2               RM100.00",
+                  "alternatives": []
+                },
+                "unit": "EA"
+              }
+            ]
+          },
+          "handoffs": [
+            {
+              "agent": "Extraction Agent",
+              "step": "initial extraction",
+              "pages": [
+                1
+              ],
+              "duration_ms": 6091,
+              "called": true,
+              "raw": "{\"po_number\": {\"value\": \"CUST-101\", \"page\": 1, \"excerpt\": \"Customer reference: CUST-101\", \"alternatives\": []}, \"currency\": {\"value\": \"MYR\", \"page\": 1, \"excerpt\": \"Currency: MYR\", \"alternatives\": []}, \"lines\": [{\"sku\": {\"value\": \"BRG-6204\", \"page\": 1, \"excerpt\": \"SKU                     Qty               Unit price\", \"alternatives\": []}, \"quantity\": {\"value\": \"2\", \"page\": 1, \"excerpt\": \"BRG-6204                2               RM100.00\", \"alternatives\": []}, \"unit_price\": {\"value\": \"RM100.00\", \"page\": 1, \"excerpt\": \"BRG-6204                2               RM100.00\", \"alternatives\": []}, \"unit\": \"EA\"}]}",
+              "source": null,
+              "reused_baseline": false
+            },
+            {
+              "agent": "Review Agent",
+              "step": "review initial proposal",
+              "called": true,
+              "pages": [
+                1
+              ],
+              "raw": "{\n  \"action\": \"reread\",\n  \"reason\": \"The source text lacks a clear mapping for the 'po_number' field, and the 'customer_reference' field is missing entirely. Additionally, the 'lines.1.sku' field is ambiguously mapped. A reread is required to resolve these issues.\",\n  \"targets\": [\n    {\n      \"page\": 1,\n      \"field\": \"po_number\",\n      \"reason\": \"The 'po_number' field is not clearly identified in the source text.\"\n    },\n    {\n      \"page\": 1,\n      \"field\": \"customer_reference\",\n      \"reason\": \"The 'customer_reference' field is missing from the source text.\"\n    },\n    {\n      \"page\": 1,\n      \"field\": \"lines.1.sku\",\n      \"reason\": \"The 'lines.1.sku' field is ambiguously mapped in the source text.\"\n    }\n  ]\n}",
+              "duration_ms": 5506,
+              "decision": {
+                "action": "reread",
+                "reason": "The source text lacks a clear mapping for the 'po_number' field, and the 'customer_reference' field is missing entirely. Additionally, the 'lines.1.sku' field is ambiguously mapped. A reread is required to resolve these issues.",
+                "targets": [
+                  {
+                    "page": 1,
+                    "field": "po_number",
+                    "reason": "The 'po_number' field is not clearly identified in the source text."
+                  },
+                  {
+                    "page": 1,
+                    "field": "customer_reference",
+                    "reason": "The 'customer_reference' field is missing from the source text."
+                  },
+                  {
+                    "page": 1,
+                    "field": "lines.1.sku",
+                    "reason": "The 'lines.1.sku' field is ambiguously mapped in the source text."
+                  }
+                ]
+              }
+            },
+            {
+              "agent": "Extraction Agent",
+              "step": "targeted reread",
+              "called": true,
+              "pages": [
+                1
+              ],
+              "raw": "{\"changes\": [{\"field\": \"po_number\", \"proposal\": {\"value\": null, \"alternatives\": [\"Purchase order\", \"Page 1 of 1\"]}}, {\"field\": \"customer_reference\", \"proposal\": {\"value\": \"CUST-101\", \"excerpt\": \"Customer reference: CUST-101\"}}, {\"field\": \"lines.1.sku\", \"proposal\": {\"value\": \"BRG-6204\", \"excerpt\": \"SKU                     Qty               Unit price\\n\\n   BRG-6204                2               RM100.00\"}}]}",
+              "duration_ms": 4001,
+              "targets": [
+                {
+                  "page": 1,
+                  "field": "po_number",
+                  "reason": "The 'po_number' field is not clearly identified in the source text."
+                },
+                {
+                  "page": 1,
+                  "field": "customer_reference",
+                  "reason": "The 'customer_reference' field is missing from the source text."
+                },
+                {
+                  "page": 1,
+                  "field": "lines.1.sku",
+                  "reason": "The 'lines.1.sku' field is ambiguously mapped in the source text.",
+                  "row_sku": "BRG-6204",
+                  "prior_value": "BRG-6204"
+                }
+              ],
+              "patch": {
+                "changes": [
+                  {
+                    "field": "po_number",
+                    "proposal": {
+                      "value": null,
+                      "page": null,
+                      "excerpt": null,
+                      "alternatives": [
+                        "Purchase order",
+                        "Page 1 of 1"
+                      ]
+                    }
+                  },
+                  {
+                    "field": "customer_reference",
+                    "proposal": {
+                      "value": "CUST-101",
+                      "page": null,
+                      "excerpt": "Customer reference: CUST-101",
+                      "alternatives": []
+                    }
+                  },
+                  {
+                    "field": "lines.1.sku",
+                    "proposal": {
+                      "value": "BRG-6204",
+                      "page": null,
+                      "excerpt": "SKU                     Qty               Unit price\n\n   BRG-6204                2               RM100.00",
+                      "alternatives": []
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "rereads": 1,
+          "call_count": 3,
+          "elapsed_ms": 15604,
+          "evidence_issues": [
+            "Po number: The quote does not identify this value in its labeled field.",
+            "Customer reference: A single value is required.",
+            "Line 1 sku: The quote does not identify this value in the correct SKU row and column.",
+            "One or more PDF rows have no completely verified draft line."
+          ]
+        },
+        "proposal": {
+          "po_number": {
+            "value": "CUST-101",
+            "page": 1,
+            "excerpt": "Customer reference: CUST-101",
+            "alternatives": []
+          },
+          "customer_reference": {
+            "value": null,
+            "page": null,
+            "excerpt": null,
+            "alternatives": []
+          },
+          "currency": {
+            "value": "MYR",
+            "page": 1,
+            "excerpt": "Currency: MYR",
+            "alternatives": []
+          },
+          "lines": [
+            {
+              "sku": {
+                "value": "BRG-6204",
+                "page": 1,
+                "excerpt": "SKU                     Qty               Unit price",
+                "alternatives": []
+              },
+              "quantity": {
+                "value": "2",
+                "page": 1,
+                "excerpt": "BRG-6204                2               RM100.00",
+                "alternatives": []
+              },
+              "unit_price": {
+                "value": "RM100.00",
+                "page": 1,
+                "excerpt": "BRG-6204                2               RM100.00",
+                "alternatives": []
+              },
+              "unit": "EA"
+            }
+          ]
+        },
+        "issues": [
+          "Customer reference is missing, ambiguous, or unknown.",
+          "Po number: The quote does not identify this value in its labeled field.",
+          "Customer reference: A single value is required.",
+          "Line 1 sku: The quote does not identify this value in the correct SKU row and column.",
+          "One or more PDF rows have no completely verified draft line.",
+          "LangGraph review requires staff resolution: The patch changed a field or page outside its reread scope."
+        ]
+      }
+    },
+    {
+      "id": "E08",
+      "category": "missing quantity",
+      "expected_route": "extraction_review",
+      "sha256": "e27e77e6a547523e3e4c3f5b9722b1c3cbeafe6854eca8dd87f6dfa1892f2936",
+      "run_order": [
+        "graph",
+        "baseline"
+      ],
+      "graph": {
+        "fields": {
+          "po_number": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "customer_reference": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "currency": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "sku": {
+            "expected": 2,
+            "correct": 2,
+            "evidenced": 2,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "quantity": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 1,
+            "correct_blank": 0
+          },
+          "unit_price": {
+            "expected": 2,
+            "correct": 2,
+            "evidenced": 2,
+            "expected_blank": 0,
+            "correct_blank": 0
+          }
+        },
+        "estimated_edits": 1,
+        "missing_rows": 0,
+        "extra_rows": 0,
+        "route": "extraction_review",
+        "route_correct": true,
+        "elapsed_ms": 12276,
+        "error": null,
+        "trace": {
+          "trigger": "Forced paired evaluation",
+          "decision": "escalate",
+          "reason": "The quantity for BELT-A42 is listed as 'TBD', which is not a valid numeric value. The source does not provide an alternative value or specify a resolution for this field.",
+          "initial_proposal": {
+            "po_number": {
+              "value": "PO-E08",
+              "page": 1,
+              "excerpt": "PO number: PO-E08",
+              "alternatives": []
+            },
+            "customer_reference": {
+              "value": "CUST-101",
+              "page": 1,
+              "excerpt": "Customer reference: CUST-101",
+              "alternatives": []
+            },
+            "currency": {
+              "value": "MYR",
+              "page": 1,
+              "excerpt": "Currency: MYR",
+              "alternatives": []
+            },
+            "lines": [
+              {
+                "sku": {
+                  "value": "BRG-6204",
+                  "page": 1,
+                  "excerpt": "SKU                         Qty               Unit price\n\n  BRG-6204                     2              RM100.00",
+                  "alternatives": []
+                },
+                "quantity": {
+                  "value": "2",
+                  "page": 1,
+                  "excerpt": "SKU                         Qty               Unit price\n\n  BRG-6204                     2              RM100.00",
+                  "alternatives": []
+                },
+                "unit_price": {
+                  "value": "RM100.00",
+                  "page": 1,
+                  "excerpt": "SKU                         Qty               Unit price\n\n  BRG-6204                     2              RM100.00",
+                  "alternatives": []
+                },
+                "unit": null
+              },
+              {
+                "sku": {
+                  "value": "BELT-A42",
+                  "page": 2,
+                  "excerpt": "SKU                         Qty               Unit price\n\n  BELT-A42                 TBD            RM45.50",
+                  "alternatives": []
+                },
+                "quantity": {
+                  "value": "TBD",
+                  "page": 2,
+                  "excerpt": "SKU                         Qty               Unit price\n\n  BELT-A42                 TBD            RM45.50",
+                  "alternatives": []
+                },
+                "unit_price": {
+                  "value": "RM45.50",
+                  "page": 2,
+                  "excerpt": "SKU                         Qty               Unit price\n\n  BELT-A42                 TBD            RM45.50",
+                  "alternatives": []
+                },
+                "unit": null
+              }
+            ]
+          },
+          "handoffs": [
+            {
+              "agent": "Extraction Agent",
+              "step": "initial extraction",
+              "pages": [
+                1,
+                2
+              ],
+              "duration_ms": 9847,
+              "called": true,
+              "raw": "{\"po_number\":{\"value\":\"PO-E08\",\"page\":1,\"excerpt\":\"PO number: PO-E08\",\"alternatives\":[]},\"customer_reference\":{\"value\":\"CUST-101\",\"page\":1,\"excerpt\":\"Customer reference: CUST-101\",\"alternatives\":[]},\"currency\":{\"value\":\"MYR\",\"page\":1,\"excerpt\":\"Currency: MYR\",\"alternatives\":[]},\"lines\":[{\"sku\":{\"value\":\"BRG-6204\",\"page\":1,\"excerpt\":\"SKU                         Qty               Unit price\\n\\n  BRG-6204                     2              RM100.00\",\"alternatives\":[]},\"quantity\":{\"value\":\"2\",\"page\":1,\"excerpt\":\"SKU                         Qty               Unit price\\n\\n  BRG-6204                     2              RM100.00\",\"alternatives\":[]},\"unit_price\":{\"value\":\"RM100.00\",\"page\":1,\"excerpt\":\"SKU                         Qty               Unit price\\n\\n  BRG-6204                     2              RM100.00\",\"alternatives\":[]},\"unit\":null},{\"sku\":{\"value\":\"BELT-A42\",\"page\":2,\"excerpt\":\"SKU                         Qty               Unit price\\n\\n  BELT-A42                 TBD            RM45.50\",\"alternatives\":[]},\"quantity\":{\"value\":\"TBD\",\"page\":2,\"excerpt\":\"SKU                         Qty               Unit price\\n\\n  BELT-A42                 TBD            RM45.50\",\"alternatives\":[]},\"unit_price\":{\"value\":\"RM45.50\",\"page\":2,\"excerpt\":\"SKU                         Qty               Unit price\\n\\n  BELT-A42                 TBD            RM45.50\",\"alternatives\":[]},\"unit\":null}]}",
+              "source": null,
+              "reused_baseline": false
+            },
+            {
+              "agent": "Review Agent",
+              "step": "review initial proposal",
+              "called": true,
+              "pages": [
+                1,
+                2
+              ],
+              "raw": "{\"action\": \"escalate\", \"reason\": \"The quantity for BELT-A42 is listed as 'TBD', which is not a valid numeric value. The source does not provide an alternative value or specify a resolution for this field.\"}",
+              "duration_ms": 2417,
+              "decision": {
+                "action": "escalate",
+                "reason": "The quantity for BELT-A42 is listed as 'TBD', which is not a valid numeric value. The source does not provide an alternative value or specify a resolution for this field.",
+                "targets": []
+              }
+            }
+          ],
+          "rereads": 0,
+          "call_count": 2,
+          "elapsed_ms": 12269,
+          "evidence_issues": []
+        },
+        "proposal": {
+          "po_number": {
+            "value": "PO-E08",
+            "page": 1,
+            "excerpt": "PO number: PO-E08",
+            "alternatives": []
+          },
+          "customer_reference": {
+            "value": "CUST-101",
+            "page": 1,
+            "excerpt": "Customer reference: CUST-101",
+            "alternatives": []
+          },
+          "currency": {
+            "value": "MYR",
+            "page": 1,
+            "excerpt": "Currency: MYR",
+            "alternatives": []
+          },
+          "lines": [
+            {
+              "sku": {
+                "value": "BRG-6204",
+                "page": 1,
+                "excerpt": "SKU                         Qty               Unit price\n\n  BRG-6204                     2              RM100.00",
+                "alternatives": []
+              },
+              "quantity": {
+                "value": "2",
+                "page": 1,
+                "excerpt": "SKU                         Qty               Unit price\n\n  BRG-6204                     2              RM100.00",
+                "alternatives": []
+              },
+              "unit_price": {
+                "value": "RM100.00",
+                "page": 1,
+                "excerpt": "SKU                         Qty               Unit price\n\n  BRG-6204                     2              RM100.00",
+                "alternatives": []
+              },
+              "unit": null
+            },
+            {
+              "sku": {
+                "value": "BELT-A42",
+                "page": 2,
+                "excerpt": "SKU                         Qty               Unit price\n\n  BELT-A42                 TBD            RM45.50",
+                "alternatives": []
+              },
+              "quantity": {
+                "value": "TBD",
+                "page": 2,
+                "excerpt": "SKU                         Qty               Unit price\n\n  BELT-A42                 TBD            RM45.50",
+                "alternatives": []
+              },
+              "unit_price": {
+                "value": "RM45.50",
+                "page": 2,
+                "excerpt": "SKU                         Qty               Unit price\n\n  BELT-A42                 TBD            RM45.50",
+                "alternatives": []
+              },
+              "unit": null
+            }
+          ]
+        },
+        "issues": [
+          "Line 2 requires a positive whole-unit quantity.",
+          "LangGraph review requires staff resolution: The quantity for BELT-A42 is listed as 'TBD', which is not a valid numeric value. The source does not provide an alternative value or specify a resolution for this field."
+        ]
+      },
+      "baseline": {
+        "fields": {
+          "po_number": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "customer_reference": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "currency": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "sku": {
+            "expected": 2,
+            "correct": 2,
+            "evidenced": 2,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "quantity": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 1,
+            "correct_blank": 0
+          },
+          "unit_price": {
+            "expected": 2,
+            "correct": 2,
+            "evidenced": 2,
+            "expected_blank": 0,
+            "correct_blank": 0
+          }
+        },
+        "estimated_edits": 1,
+        "missing_rows": 0,
+        "extra_rows": 0,
+        "route": "extraction_review",
+        "route_correct": true,
+        "elapsed_ms": 9895,
+        "error": null,
+        "trace": {
+          "call_count": 1,
+          "rereads": 0,
+          "raw": "{\"po_number\":{\"value\":\"PO-E08\",\"page\":1,\"excerpt\":\"PO number: PO-E08\",\"alternatives\":[]},\"customer_reference\":{\"value\":\"CUST-101\",\"page\":1,\"excerpt\":\"Customer reference: CUST-101\",\"alternatives\":[]},\"currency\":{\"value\":\"MYR\",\"page\":1,\"excerpt\":\"Currency: MYR\",\"alternatives\":[]},\"lines\":[{\"sku\":{\"value\":\"BRG-6204\",\"page\":1,\"excerpt\":\"SKU                         Qty               Unit price\\n\\n  BRG-6204                     2              RM100.00\",\"alternatives\":[]},\"quantity\":{\"value\":\"2\",\"page\":1,\"excerpt\":\"SKU                         Qty               Unit price\\n\\n  BRG-6204                     2              RM100.00\",\"alternatives\":[]},\"unit_price\":{\"value\":\"RM100.00\",\"page\":1,\"excerpt\":\"SKU                         Qty               Unit price\\n\\n  BRG-6204                     2              RM100.00\",\"alternatives\":[]},\"unit\":null},{\"sku\":{\"value\":\"BELT-A42\",\"page\":2,\"excerpt\":\"SKU                         Qty               Unit price\\n\\n  BELT-A42                 TBD            RM45.50\",\"alternatives\":[]},\"quantity\":{\"value\":\"TBD\",\"page\":2,\"excerpt\":\"SKU                         Qty               Unit price\\n\\n  BELT-A42                 TBD            RM45.50\",\"alternatives\":[]},\"unit_price\":{\"value\":\"RM45.50\",\"page\":2,\"excerpt\":\"SKU                         Qty               Unit price\\n\\n  BELT-A42                 TBD            RM45.50\",\"alternatives\":[]},\"unit\":null}]}"
+        },
+        "proposal": {
+          "po_number": {
+            "value": "PO-E08",
+            "page": 1,
+            "excerpt": "PO number: PO-E08",
+            "alternatives": []
+          },
+          "customer_reference": {
+            "value": "CUST-101",
+            "page": 1,
+            "excerpt": "Customer reference: CUST-101",
+            "alternatives": []
+          },
+          "currency": {
+            "value": "MYR",
+            "page": 1,
+            "excerpt": "Currency: MYR",
+            "alternatives": []
+          },
+          "lines": [
+            {
+              "sku": {
+                "value": "BRG-6204",
+                "page": 1,
+                "excerpt": "SKU                         Qty               Unit price\n\n  BRG-6204                     2              RM100.00",
+                "alternatives": []
+              },
+              "quantity": {
+                "value": "2",
+                "page": 1,
+                "excerpt": "SKU                         Qty               Unit price\n\n  BRG-6204                     2              RM100.00",
+                "alternatives": []
+              },
+              "unit_price": {
+                "value": "RM100.00",
+                "page": 1,
+                "excerpt": "SKU                         Qty               Unit price\n\n  BRG-6204                     2              RM100.00",
+                "alternatives": []
+              },
+              "unit": null
+            },
+            {
+              "sku": {
+                "value": "BELT-A42",
+                "page": 2,
+                "excerpt": "SKU                         Qty               Unit price\n\n  BELT-A42                 TBD            RM45.50",
+                "alternatives": []
+              },
+              "quantity": {
+                "value": "TBD",
+                "page": 2,
+                "excerpt": "SKU                         Qty               Unit price\n\n  BELT-A42                 TBD            RM45.50",
+                "alternatives": []
+              },
+              "unit_price": {
+                "value": "RM45.50",
+                "page": 2,
+                "excerpt": "SKU                         Qty               Unit price\n\n  BELT-A42                 TBD            RM45.50",
+                "alternatives": []
+              },
+              "unit": null
+            }
+          ]
+        },
+        "issues": [
+          "Line 2 requires a positive whole-unit quantity."
+        ]
+      }
+    },
+    {
+      "id": "E09",
+      "category": "unselected price options",
+      "expected_route": "extraction_review",
+      "sha256": "543fb770e8bac4a54640f4bcf2533faf1a245068931ca61158d454fdfb22a5a7",
+      "run_order": [
+        "baseline",
+        "graph"
+      ],
+      "baseline": {
+        "fields": {
+          "po_number": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "customer_reference": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "currency": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "sku": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 0,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "quantity": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 0,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "unit_price": {
+            "expected": 0,
+            "correct": 0,
+            "evidenced": 0,
+            "expected_blank": 1,
+            "correct_blank": 0
+          }
+        },
+        "estimated_edits": 3,
+        "missing_rows": 0,
+        "extra_rows": 0,
+        "route": "extraction_review",
+        "route_correct": true,
+        "elapsed_ms": 7806,
+        "error": null,
+        "trace": {
+          "call_count": 1,
+          "rereads": 0,
+          "raw": "{\"po_number\":{\"value\":\"PO-E09\",\"page\":1,\"excerpt\":\"PO number: PO-E09\",\"alternatives\":[]},\"customer_reference\":{\"value\":\"CUST-101\",\"page\":1,\"excerpt\":\"Customer reference: CUST-101\",\"alternatives\":[]},\"currency\":{\"value\":\"MYR\",\"page\":1,\"excerpt\":\"Currency: MYR\",\"alternatives\":[]},\"lines\":[{\"sku\":{\"value\":\"BRG-6204\",\"page\":1,\"excerpt\":\"SKU                     Qty              Option A (RM)           Option B (RM)\\n   BRG-6204                2               RM100.00              RM90.00\",\"alternatives\":[]},\"quantity\":{\"value\":\"2\",\"page\":1,\"excerpt\":\"SKU                     Qty              Option A (RM)           Option B (RM)\\n   BRG-6204                2               RM100.00              RM90.00\",\"alternatives\":[]},\"unit_price\":{\"value\":\"RM100.00\",\"page\":1,\"excerpt\":\"SKU                     Qty              Option A (RM)           Option B (RM)\\n   BRG-6204                2               RM100.00              RM90.00\",\"alternatives\":[]},\"unit\":\"EA\"}]}"
+        },
+        "proposal": {
+          "po_number": {
+            "value": "PO-E09",
+            "page": 1,
+            "excerpt": "PO number: PO-E09",
+            "alternatives": []
+          },
+          "customer_reference": {
+            "value": "CUST-101",
+            "page": 1,
+            "excerpt": "Customer reference: CUST-101",
+            "alternatives": []
+          },
+          "currency": {
+            "value": "MYR",
+            "page": 1,
+            "excerpt": "Currency: MYR",
+            "alternatives": []
+          },
+          "lines": [
+            {
+              "sku": {
+                "value": "BRG-6204",
+                "page": 1,
+                "excerpt": "SKU                     Qty              Option A (RM)           Option B (RM)\n   BRG-6204                2               RM100.00              RM90.00",
+                "alternatives": []
+              },
+              "quantity": {
+                "value": "2",
+                "page": 1,
+                "excerpt": "SKU                     Qty              Option A (RM)           Option B (RM)\n   BRG-6204                2               RM100.00              RM90.00",
+                "alternatives": []
+              },
+              "unit_price": {
+                "value": "RM100.00",
+                "page": 1,
+                "excerpt": "SKU                     Qty              Option A (RM)           Option B (RM)\n   BRG-6204                2               RM100.00              RM90.00",
+                "alternatives": []
+              },
+              "unit": "EA"
+            }
+          ]
+        },
+        "issues": [
+          "Line 1 sku: The quote does not identify this value in the correct SKU row and column.",
+          "Line 1 quantity: The quote does not identify this value in the correct SKU row and column.",
+          "Line 1 unit price: The quote does not identify this value in the correct SKU row and column.",
+          "Page 1: No supported order table was found."
+        ]
+      },
+      "graph": {
+        "fields": {
+          "po_number": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "customer_reference": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "currency": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "sku": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 0,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "quantity": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 0,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "unit_price": {
+            "expected": 0,
+            "correct": 0,
+            "evidenced": 0,
+            "expected_blank": 1,
+            "correct_blank": 0
+          }
+        },
+        "estimated_edits": 3,
+        "missing_rows": 0,
+        "extra_rows": 0,
+        "route": "extraction_review",
+        "route_correct": true,
+        "elapsed_ms": 19257,
+        "error": null,
+        "trace": {
+          "trigger": "Forced paired evaluation",
+          "decision": "escalate",
+          "reason": "A proposed patch value did not pass source evidence verification.",
+          "initial_proposal": {
+            "po_number": {
+              "value": "PO-E09",
+              "page": 1,
+              "excerpt": "PO number: PO-E09",
+              "alternatives": []
+            },
+            "customer_reference": {
+              "value": "CUST-101",
+              "page": 1,
+              "excerpt": "Customer reference: CUST-101",
+              "alternatives": []
+            },
+            "currency": {
+              "value": "MYR",
+              "page": 1,
+              "excerpt": "Currency: MYR",
+              "alternatives": []
+            },
+            "lines": [
+              {
+                "sku": {
+                  "value": "BRG-6204",
+                  "page": 1,
+                  "excerpt": "SKU                     Qty              Option A (RM)           Option B (RM)\n   BRG-6204                2               RM100.00              RM90.00",
+                  "alternatives": []
+                },
+                "quantity": {
+                  "value": "2",
+                  "page": 1,
+                  "excerpt": "SKU                     Qty              Option A (RM)           Option B (RM)\n   BRG-6204                2               RM100.00              RM90.00",
+                  "alternatives": []
+                },
+                "unit_price": {
+                  "value": "RM100.00",
+                  "page": 1,
+                  "excerpt": "SKU                     Qty              Option A (RM)           Option B (RM)\n   BRG-6204                2               RM100.00              RM90.00",
+                  "alternatives": []
+                },
+                "unit": "EA"
+              }
+            ]
+          },
+          "handoffs": [
+            {
+              "agent": "Extraction Agent",
+              "step": "initial extraction",
+              "pages": [
+                1
+              ],
+              "duration_ms": 7487,
+              "called": true,
+              "raw": "{\"po_number\":{\"value\":\"PO-E09\",\"page\":1,\"excerpt\":\"PO number: PO-E09\",\"alternatives\":[]},\"customer_reference\":{\"value\":\"CUST-101\",\"page\":1,\"excerpt\":\"Customer reference: CUST-101\",\"alternatives\":[]},\"currency\":{\"value\":\"MYR\",\"page\":1,\"excerpt\":\"Currency: MYR\",\"alternatives\":[]},\"lines\":[{\"sku\":{\"value\":\"BRG-6204\",\"page\":1,\"excerpt\":\"SKU                     Qty              Option A (RM)           Option B (RM)\\n   BRG-6204                2               RM100.00              RM90.00\",\"alternatives\":[]},\"quantity\":{\"value\":\"2\",\"page\":1,\"excerpt\":\"SKU                     Qty              Option A (RM)           Option B (RM)\\n   BRG-6204                2               RM100.00              RM90.00\",\"alternatives\":[]},\"unit_price\":{\"value\":\"RM100.00\",\"page\":1,\"excerpt\":\"SKU                     Qty              Option A (RM)           Option B (RM)\\n   BRG-6204                2               RM100.00              RM90.00\",\"alternatives\":[]},\"unit\":\"EA\"}]}",
+              "source": null,
+              "reused_baseline": false
+            },
+            {
+              "agent": "Review Agent",
+              "step": "review initial proposal",
+              "called": true,
+              "pages": [
+                1
+              ],
+              "raw": "{\n  \"action\": \"reread\",\n  \"reason\": \"The source text does not clearly associate the SKU, quantity, and unit price with the correct row and column in the table. A reread is required to resolve the ambiguity in the line item data.\",\n  \"targets\": [\n    {\n      \"page\": 1,\n      \"field\": \"lines.1.sku\",\n      \"reason\": \"The SKU value is not clearly identified in the correct row and column.\"\n    },\n    {\n      \"page\": 1,\n      \"field\": \"lines.1.quantity\",\n      \"reason\": \"The quantity value is not clearly identified in the correct row and column.\"\n    },\n    {\n      \"page\": 1,\n      \"field\": \"lines.1.unit_price\",\n      \"reason\": \"The unit price value is not clearly identified in the correct row and column.\"\n    }\n  ]\n}",
+              "duration_ms": 5301,
+              "decision": {
+                "action": "reread",
+                "reason": "The source text does not clearly associate the SKU, quantity, and unit price with the correct row and column in the table. A reread is required to resolve the ambiguity in the line item data.",
+                "targets": [
+                  {
+                    "page": 1,
+                    "field": "lines.1.sku",
+                    "reason": "The SKU value is not clearly identified in the correct row and column."
+                  },
+                  {
+                    "page": 1,
+                    "field": "lines.1.quantity",
+                    "reason": "The quantity value is not clearly identified in the correct row and column."
+                  },
+                  {
+                    "page": 1,
+                    "field": "lines.1.unit_price",
+                    "reason": "The unit price value is not clearly identified in the correct row and column."
+                  }
+                ]
+              }
+            },
+            {
+              "agent": "Extraction Agent",
+              "step": "targeted reread",
+              "called": true,
+              "pages": [
+                1
+              ],
+              "raw": "{\"changes\": [{\"field\": \"lines.1.sku\", \"proposal\": {\"value\": \"BRG-6204\", \"page\": 1, \"excerpt\": \"SKU                     Qty              Option A (RM)           Option B (RM)\\n\\n   BRG-6204                2               RM100.00              RM90.00\"}}, {\"field\": \"lines.1.quantity\", \"proposal\": {\"value\": \"2\", \"page\": 1, \"excerpt\": \"SKU                     Qty              Option A (RM)           Option B (RM)\\n\\n   BRG-6204                2               RM100.00              RM90.00\"}}, {\"field\": \"lines.1.unit_price\", \"proposal\": {\"value\": \"RM100.00\", \"page\": 1, \"excerpt\": \"SKU                     Qty              Option A (RM)           Option B (RM)\\n\\n   BRG-6204                2               RM100.00              RM90.00\"}}]}",
+              "duration_ms": 6452,
+              "targets": [
+                {
+                  "page": 1,
+                  "field": "lines.1.sku",
+                  "reason": "The SKU value is not clearly identified in the correct row and column.",
+                  "row_sku": "BRG-6204",
+                  "prior_value": "BRG-6204"
+                },
+                {
+                  "page": 1,
+                  "field": "lines.1.quantity",
+                  "reason": "The quantity value is not clearly identified in the correct row and column.",
+                  "row_sku": "BRG-6204",
+                  "prior_value": "2"
+                },
+                {
+                  "page": 1,
+                  "field": "lines.1.unit_price",
+                  "reason": "The unit price value is not clearly identified in the correct row and column.",
+                  "row_sku": "BRG-6204",
+                  "prior_value": "RM100.00"
+                }
+              ],
+              "patch": {
+                "changes": [
+                  {
+                    "field": "lines.1.sku",
+                    "proposal": {
+                      "value": "BRG-6204",
+                      "page": 1,
+                      "excerpt": "SKU                     Qty              Option A (RM)           Option B (RM)\n\n   BRG-6204                2               RM100.00              RM90.00",
+                      "alternatives": []
+                    }
+                  },
+                  {
+                    "field": "lines.1.quantity",
+                    "proposal": {
+                      "value": "2",
+                      "page": 1,
+                      "excerpt": "SKU                     Qty              Option A (RM)           Option B (RM)\n\n   BRG-6204                2               RM100.00              RM90.00",
+                      "alternatives": []
+                    }
+                  },
+                  {
+                    "field": "lines.1.unit_price",
+                    "proposal": {
+                      "value": "RM100.00",
+                      "page": 1,
+                      "excerpt": "SKU                     Qty              Option A (RM)           Option B (RM)\n\n   BRG-6204                2               RM100.00              RM90.00",
+                      "alternatives": []
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "rereads": 1,
+          "call_count": 3,
+          "elapsed_ms": 19250,
+          "evidence_issues": [
+            "Line 1 sku: The quote does not identify this value in the correct SKU row and column.",
+            "Line 1 quantity: The quote does not identify this value in the correct SKU row and column.",
+            "Line 1 unit price: The quote does not identify this value in the correct SKU row and column.",
+            "Page 1: No supported order table was found."
+          ]
+        },
+        "proposal": {
+          "po_number": {
+            "value": "PO-E09",
+            "page": 1,
+            "excerpt": "PO number: PO-E09",
+            "alternatives": []
+          },
+          "customer_reference": {
+            "value": "CUST-101",
+            "page": 1,
+            "excerpt": "Customer reference: CUST-101",
+            "alternatives": []
+          },
+          "currency": {
+            "value": "MYR",
+            "page": 1,
+            "excerpt": "Currency: MYR",
+            "alternatives": []
+          },
+          "lines": [
+            {
+              "sku": {
+                "value": "BRG-6204",
+                "page": 1,
+                "excerpt": "SKU                     Qty              Option A (RM)           Option B (RM)\n   BRG-6204                2               RM100.00              RM90.00",
+                "alternatives": []
+              },
+              "quantity": {
+                "value": "2",
+                "page": 1,
+                "excerpt": "SKU                     Qty              Option A (RM)           Option B (RM)\n   BRG-6204                2               RM100.00              RM90.00",
+                "alternatives": []
+              },
+              "unit_price": {
+                "value": "RM100.00",
+                "page": 1,
+                "excerpt": "SKU                     Qty              Option A (RM)           Option B (RM)\n   BRG-6204                2               RM100.00              RM90.00",
+                "alternatives": []
+              },
+              "unit": "EA"
+            }
+          ]
+        },
+        "issues": [
+          "Line 1 sku: The quote does not identify this value in the correct SKU row and column.",
+          "Line 1 quantity: The quote does not identify this value in the correct SKU row and column.",
+          "Line 1 unit price: The quote does not identify this value in the correct SKU row and column.",
+          "Page 1: No supported order table was found.",
+          "LangGraph review requires staff resolution: A proposed patch value did not pass source evidence verification."
+        ]
+      }
+    },
+    {
+      "id": "E10",
+      "category": "two labeled PO numbers",
+      "expected_route": "extraction_review",
+      "sha256": "8d63fa2ed367ec23cab27e91e62f5214e3294505af9d425e1d7f3fba36c6ed4a",
+      "run_order": [
+        "graph",
+        "baseline"
+      ],
+      "graph": {
+        "fields": {
+          "po_number": {
+            "expected": 0,
+            "correct": 0,
+            "evidenced": 0,
+            "expected_blank": 1,
+            "correct_blank": 0
+          },
+          "customer_reference": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "currency": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "sku": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "quantity": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "unit_price": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          }
+        },
+        "estimated_edits": 1,
+        "missing_rows": 0,
+        "extra_rows": 0,
+        "route": "extraction_review",
+        "route_correct": true,
+        "elapsed_ms": 8849,
+        "error": null,
+        "trace": {
+          "trigger": "Forced paired evaluation",
+          "decision": "escalate",
+          "reason": "The 'po_number' field has conflicting values ('PO-E10' and 'PO-E10-B') and the source does not clearly indicate which one is the correct value. A single value is required.",
+          "initial_proposal": {
+            "po_number": {
+              "value": "PO-E10",
+              "page": 1,
+              "excerpt": "PO number: PO-E10",
+              "alternatives": [
+                "PO-E10-B"
+              ]
+            },
+            "customer_reference": {
+              "value": "CUST-101",
+              "page": 1,
+              "excerpt": "Customer reference: CUST-101",
+              "alternatives": []
+            },
+            "currency": {
+              "value": "MYR",
+              "page": 1,
+              "excerpt": "Currency: MYR",
+              "alternatives": []
+            },
+            "lines": [
+              {
+                "sku": {
+                  "value": "BELT-A42",
+                  "page": 1,
+                  "excerpt": "BELT-A42",
+                  "alternatives": []
+                },
+                "quantity": {
+                  "value": "3",
+                  "page": 1,
+                  "excerpt": "3",
+                  "alternatives": []
+                },
+                "unit_price": {
+                  "value": "RM45.50",
+                  "page": 1,
+                  "excerpt": "RM45.50",
+                  "alternatives": []
+                },
+                "unit": "EA"
+              }
+            ]
+          },
+          "handoffs": [
+            {
+              "agent": "Extraction Agent",
+              "step": "initial extraction",
+              "pages": [
+                1
+              ],
+              "duration_ms": 6367,
+              "called": true,
+              "raw": "{\"po_number\": {\"value\": \"PO-E10\", \"page\": 1, \"excerpt\": \"PO number: PO-E10\", \"alternatives\": [\"PO-E10-B\"]}, \"customer_reference\": {\"value\": \"CUST-101\", \"page\": 1, \"excerpt\": \"Customer reference: CUST-101\", \"alternatives\": []}, \"currency\": {\"value\": \"MYR\", \"page\": 1, \"excerpt\": \"Currency: MYR\", \"alternatives\": []}, \"lines\": [{\"sku\": {\"value\": \"BELT-A42\", \"page\": 1, \"excerpt\": \"BELT-A42\", \"alternatives\": []}, \"quantity\": {\"value\": \"3\", \"page\": 1, \"excerpt\": \"3\", \"alternatives\": []}, \"unit_price\": {\"value\": \"RM45.50\", \"page\": 1, \"excerpt\": \"RM45.50\", \"alternatives\": []}, \"unit\": \"EA\"}]}",
+              "source": null,
+              "reused_baseline": false
+            },
+            {
+              "agent": "Review Agent",
+              "step": "review initial proposal",
+              "called": true,
+              "pages": [
+                1
+              ],
+              "raw": "{\n  \"action\": \"escalate\",\n  \"reason\": \"The 'po_number' field has conflicting values ('PO-E10' and 'PO-E10-B') and the source does not clearly indicate which one is the correct value. A single value is required.\",\n  \"targets\": []\n}",
+              "duration_ms": 2465,
+              "decision": {
+                "action": "escalate",
+                "reason": "The 'po_number' field has conflicting values ('PO-E10' and 'PO-E10-B') and the source does not clearly indicate which one is the correct value. A single value is required.",
+                "targets": []
+              }
+            }
+          ],
+          "rereads": 0,
+          "call_count": 2,
+          "elapsed_ms": 8839,
+          "evidence_issues": [
+            "Po number: A single value is required."
+          ]
+        },
+        "proposal": {
+          "po_number": {
+            "value": "PO-E10",
+            "page": 1,
+            "excerpt": "PO number: PO-E10",
+            "alternatives": [
+              "PO-E10-B"
+            ]
+          },
+          "customer_reference": {
+            "value": "CUST-101",
+            "page": 1,
+            "excerpt": "Customer reference: CUST-101",
+            "alternatives": []
+          },
+          "currency": {
+            "value": "MYR",
+            "page": 1,
+            "excerpt": "Currency: MYR",
+            "alternatives": []
+          },
+          "lines": [
+            {
+              "sku": {
+                "value": "BELT-A42",
+                "page": 1,
+                "excerpt": "BELT-A42",
+                "alternatives": []
+              },
+              "quantity": {
+                "value": "3",
+                "page": 1,
+                "excerpt": "3",
+                "alternatives": []
+              },
+              "unit_price": {
+                "value": "RM45.50",
+                "page": 1,
+                "excerpt": "RM45.50",
+                "alternatives": []
+              },
+              "unit": "EA"
+            }
+          ]
+        },
+        "issues": [
+          "PO number is missing or ambiguous.",
+          "Po number: A single value is required.",
+          "LangGraph review requires staff resolution: The 'po_number' field has conflicting values ('PO-E10' and 'PO-E10-B') and the source does not clearly indicate which one is the correct value. A single value is required."
+        ]
+      },
+      "baseline": {
+        "fields": {
+          "po_number": {
+            "expected": 0,
+            "correct": 0,
+            "evidenced": 0,
+            "expected_blank": 1,
+            "correct_blank": 0
+          },
+          "customer_reference": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "currency": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "sku": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "quantity": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "unit_price": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          }
+        },
+        "estimated_edits": 1,
+        "missing_rows": 0,
+        "extra_rows": 0,
+        "route": "extraction_review",
+        "route_correct": true,
+        "elapsed_ms": 6859,
+        "error": null,
+        "trace": {
+          "call_count": 1,
+          "rereads": 0,
+          "raw": "{\"po_number\": {\"value\": \"PO-E10\", \"page\": 1, \"excerpt\": \"PO number: PO-E10\", \"alternatives\": [\"PO-E10-B\"]}, \"customer_reference\": {\"value\": \"CUST-101\", \"page\": 1, \"excerpt\": \"Customer reference: CUST-101\", \"alternatives\": []}, \"currency\": {\"value\": \"MYR\", \"page\": 1, \"excerpt\": \"Currency: MYR\", \"alternatives\": []}, \"lines\": [{\"sku\": {\"value\": \"BELT-A42\", \"page\": 1, \"excerpt\": \"BELT-A42\", \"alternatives\": []}, \"quantity\": {\"value\": \"3\", \"page\": 1, \"excerpt\": \"3\", \"alternatives\": []}, \"unit_price\": {\"value\": \"RM45.50\", \"page\": 1, \"excerpt\": \"RM45.50\", \"alternatives\": []}, \"unit\": \"EA\"}]}"
+        },
+        "proposal": {
+          "po_number": {
+            "value": "PO-E10",
+            "page": 1,
+            "excerpt": "PO number: PO-E10",
+            "alternatives": [
+              "PO-E10-B"
+            ]
+          },
+          "customer_reference": {
+            "value": "CUST-101",
+            "page": 1,
+            "excerpt": "Customer reference: CUST-101",
+            "alternatives": []
+          },
+          "currency": {
+            "value": "MYR",
+            "page": 1,
+            "excerpt": "Currency: MYR",
+            "alternatives": []
+          },
+          "lines": [
+            {
+              "sku": {
+                "value": "BELT-A42",
+                "page": 1,
+                "excerpt": "BELT-A42",
+                "alternatives": []
+              },
+              "quantity": {
+                "value": "3",
+                "page": 1,
+                "excerpt": "3",
+                "alternatives": []
+              },
+              "unit_price": {
+                "value": "RM45.50",
+                "page": 1,
+                "excerpt": "RM45.50",
+                "alternatives": []
+              },
+              "unit": "EA"
+            }
+          ]
+        },
+        "issues": [
+          "PO number is missing or ambiguous.",
+          "Po number: A single value is required."
+        ]
+      }
+    },
+    {
+      "id": "E11",
+      "category": "repeated SKU",
+      "expected_route": "ready",
+      "sha256": "95c0bae5df18591ba2c234e5d333fb09d88e58aefc994aecc65caf24442c472c",
+      "run_order": [
+        "baseline",
+        "graph"
+      ],
+      "baseline": {
+        "fields": {
+          "po_number": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "customer_reference": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "currency": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "sku": {
+            "expected": 2,
+            "correct": 2,
+            "evidenced": 2,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "quantity": {
+            "expected": 2,
+            "correct": 2,
+            "evidenced": 2,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "unit_price": {
+            "expected": 2,
+            "correct": 2,
+            "evidenced": 2,
+            "expected_blank": 0,
+            "correct_blank": 0
+          }
+        },
+        "estimated_edits": 0,
+        "missing_rows": 0,
+        "extra_rows": 0,
+        "route": "ready",
+        "route_correct": true,
+        "elapsed_ms": 10750,
+        "error": null,
+        "trace": {
+          "call_count": 1,
+          "rereads": 0,
+          "raw": "{\"po_number\":{\"value\":\"PO-E11\",\"page\":1,\"excerpt\":\"PO number: PO-E11\",\"alternatives\":[]},\"customer_reference\":{\"value\":\"CUST-101\",\"page\":1,\"excerpt\":\"Customer reference: CUST-101\",\"alternatives\":[]},\"currency\":{\"value\":\"MYR\",\"page\":1,\"excerpt\":\"Currency: MYR\",\"alternatives\":[]},\"lines\":[{\"sku\":{\"value\":\"BRG-6204\",\"page\":1,\"excerpt\":\"BRG-6204                     2              RM100.00\",\"alternatives\":[]},\"quantity\":{\"value\":\"2\",\"page\":1,\"excerpt\":\"BRG-6204                     2              RM100.00\",\"alternatives\":[]},\"unit_price\":{\"value\":\"RM100.00\",\"page\":1,\"excerpt\":\"BRG-6204                     2              RM100.00\",\"alternatives\":[]},\"unit\":\"EA\"},{\"sku\":{\"value\":\"BRG-6204\",\"page\":1,\"excerpt\":\"BRG-6204                     5              RM100.00\",\"alternatives\":[]},\"quantity\":{\"value\":\"5\",\"page\":1,\"excerpt\":\"BRG-6204                     5              RM100.00\",\"alternatives\":[]},\"unit_price\":{\"value\":\"RM100.00\",\"page\":1,\"excerpt\":\"BRG-6204                     5              RM100.00\",\"alternatives\":[]},\"unit\":\"EA\"}]}"
+        },
+        "proposal": {
+          "po_number": {
+            "value": "PO-E11",
+            "page": 1,
+            "excerpt": "PO number: PO-E11",
+            "alternatives": []
+          },
+          "customer_reference": {
+            "value": "CUST-101",
+            "page": 1,
+            "excerpt": "Customer reference: CUST-101",
+            "alternatives": []
+          },
+          "currency": {
+            "value": "MYR",
+            "page": 1,
+            "excerpt": "Currency: MYR",
+            "alternatives": []
+          },
+          "lines": [
+            {
+              "sku": {
+                "value": "BRG-6204",
+                "page": 1,
+                "excerpt": "BRG-6204                     2              RM100.00",
+                "alternatives": []
+              },
+              "quantity": {
+                "value": "2",
+                "page": 1,
+                "excerpt": "BRG-6204                     2              RM100.00",
+                "alternatives": []
+              },
+              "unit_price": {
+                "value": "RM100.00",
+                "page": 1,
+                "excerpt": "BRG-6204                     2              RM100.00",
+                "alternatives": []
+              },
+              "unit": "EA"
+            },
+            {
+              "sku": {
+                "value": "BRG-6204",
+                "page": 1,
+                "excerpt": "BRG-6204                     5              RM100.00",
+                "alternatives": []
+              },
+              "quantity": {
+                "value": "5",
+                "page": 1,
+                "excerpt": "BRG-6204                     5              RM100.00",
+                "alternatives": []
+              },
+              "unit_price": {
+                "value": "RM100.00",
+                "page": 1,
+                "excerpt": "BRG-6204                     5              RM100.00",
+                "alternatives": []
+              },
+              "unit": "EA"
+            }
+          ]
+        },
+        "issues": []
+      },
+      "graph": {
+        "fields": {
+          "po_number": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "customer_reference": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "currency": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "sku": {
+            "expected": 2,
+            "correct": 2,
+            "evidenced": 2,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "quantity": {
+            "expected": 2,
+            "correct": 2,
+            "evidenced": 2,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "unit_price": {
+            "expected": 2,
+            "correct": 2,
+            "evidenced": 2,
+            "expected_blank": 0,
+            "correct_blank": 0
+          }
+        },
+        "estimated_edits": 0,
+        "missing_rows": 0,
+        "extra_rows": 0,
+        "route": "ready",
+        "route_correct": true,
+        "elapsed_ms": 26962,
+        "error": null,
+        "trace": {
+          "trigger": "Forced paired evaluation",
+          "decision": "accept",
+          "reason": "All fields are correctly extracted and supported by the source. No missing values or unresolved evidence issues detected.",
+          "initial_proposal": {
+            "po_number": {
+              "value": "PO-E11",
+              "page": 1,
+              "excerpt": "PO number: PO-E11",
+              "alternatives": []
+            },
+            "customer_reference": {
+              "value": "CUST-101",
+              "page": 1,
+              "excerpt": "Customer reference: CUST-101",
+              "alternatives": []
+            },
+            "currency": {
+              "value": "MYR",
+              "page": 1,
+              "excerpt": "Currency: MYR",
+              "alternatives": []
+            },
+            "lines": [
+              {
+                "sku": {
+                  "value": "BRG-6204",
+                  "page": 1,
+                  "excerpt": "BRG-6204                     2              RM100.00",
+                  "alternatives": []
+                },
+                "quantity": {
+                  "value": "2",
+                  "page": 1,
+                  "excerpt": "BRG-6204                     2              RM100.00",
+                  "alternatives": []
+                },
+                "unit_price": {
+                  "value": "RM100.00",
+                  "page": 1,
+                  "excerpt": "BRG-6204                     2              RM100.00",
+                  "alternatives": []
+                },
+                "unit": "EA"
+              },
+              {
+                "sku": {
+                  "value": "BRG-6204",
+                  "page": 1,
+                  "excerpt": "BRG-6204                     5              RM100.00",
+                  "alternatives": []
+                },
+                "quantity": {
+                  "value": "5",
+                  "page": 1,
+                  "excerpt": "BRG-6204                     5              RM100.00",
+                  "alternatives": []
+                },
+                "unit_price": {
+                  "value": "RM100.00",
+                  "page": 1,
+                  "excerpt": "BRG-6204                     5              RM100.00",
+                  "alternatives": []
+                },
+                "unit": "EA"
+              }
+            ]
+          },
+          "handoffs": [
+            {
+              "agent": "Extraction Agent",
+              "step": "initial extraction",
+              "pages": [
+                1
+              ],
+              "duration_ms": 10220,
+              "called": true,
+              "raw": "{\"po_number\":{\"value\":\"PO-E11\",\"page\":1,\"excerpt\":\"PO number: PO-E11\",\"alternatives\":[]},\"customer_reference\":{\"value\":\"CUST-101\",\"page\":1,\"excerpt\":\"Customer reference: CUST-101\",\"alternatives\":[]},\"currency\":{\"value\":\"MYR\",\"page\":1,\"excerpt\":\"Currency: MYR\",\"alternatives\":[]},\"lines\":[{\"sku\":{\"value\":\"BRG-6204\",\"page\":1,\"excerpt\":\"BRG-6204                     2              RM100.00\",\"alternatives\":[]},\"quantity\":{\"value\":\"2\",\"page\":1,\"excerpt\":\"BRG-6204                     2              RM100.00\",\"alternatives\":[]},\"unit_price\":{\"value\":\"RM100.00\",\"page\":1,\"excerpt\":\"BRG-6204                     2              RM100.00\",\"alternatives\":[]},\"unit\":\"EA\"},{\"sku\":{\"value\":\"BRG-6204\",\"page\":1,\"excerpt\":\"BRG-6204                     5              RM100.00\",\"alternatives\":[]},\"quantity\":{\"value\":\"5\",\"page\":1,\"excerpt\":\"BRG-6204                     5              RM100.00\",\"alternatives\":[]},\"unit_price\":{\"value\":\"RM100.00\",\"page\":1,\"excerpt\":\"BRG-6204                     5              RM100.00\",\"alternatives\":[]},\"unit\":\"EA\"}]}",
+              "source": null,
+              "reused_baseline": false
+            },
+            {
+              "agent": "Review Agent",
+              "step": "review initial proposal",
+              "called": true,
+              "pages": [
+                1
+              ],
+              "raw": "{\"action\": \"accept\", \"reason\": \"All fields are correctly extracted and supported by the source. No missing values or unresolved evidence issues detected.\", \"targets\": []}",
+              "duration_ms": 16728,
+              "decision": {
+                "action": "accept",
+                "reason": "All fields are correctly extracted and supported by the source. No missing values or unresolved evidence issues detected.",
+                "targets": []
+              }
+            }
+          ],
+          "rereads": 0,
+          "call_count": 2,
+          "elapsed_ms": 26954,
+          "evidence_issues": []
+        },
+        "proposal": {
+          "po_number": {
+            "value": "PO-E11",
+            "page": 1,
+            "excerpt": "PO number: PO-E11",
+            "alternatives": []
+          },
+          "customer_reference": {
+            "value": "CUST-101",
+            "page": 1,
+            "excerpt": "Customer reference: CUST-101",
+            "alternatives": []
+          },
+          "currency": {
+            "value": "MYR",
+            "page": 1,
+            "excerpt": "Currency: MYR",
+            "alternatives": []
+          },
+          "lines": [
+            {
+              "sku": {
+                "value": "BRG-6204",
+                "page": 1,
+                "excerpt": "BRG-6204                     2              RM100.00",
+                "alternatives": []
+              },
+              "quantity": {
+                "value": "2",
+                "page": 1,
+                "excerpt": "BRG-6204                     2              RM100.00",
+                "alternatives": []
+              },
+              "unit_price": {
+                "value": "RM100.00",
+                "page": 1,
+                "excerpt": "BRG-6204                     2              RM100.00",
+                "alternatives": []
+              },
+              "unit": "EA"
+            },
+            {
+              "sku": {
+                "value": "BRG-6204",
+                "page": 1,
+                "excerpt": "BRG-6204                     5              RM100.00",
+                "alternatives": []
+              },
+              "quantity": {
+                "value": "5",
+                "page": 1,
+                "excerpt": "BRG-6204                     5              RM100.00",
+                "alternatives": []
+              },
+              "unit_price": {
+                "value": "RM100.00",
+                "page": 1,
+                "excerpt": "BRG-6204                     5              RM100.00",
+                "alternatives": []
+              },
+              "unit": "EA"
+            }
+          ]
+        },
+        "issues": []
+      }
+    },
+    {
+      "id": "E12",
+      "category": "unsupported price precision",
+      "expected_route": "extraction_review",
+      "sha256": "fd0f81b7ab403c4d6dc086aaa295baf2ca57e880e0c4334405ff31b1ec5b526b",
+      "run_order": [
+        "graph",
+        "baseline"
+      ],
+      "graph": {
+        "fields": {
+          "po_number": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "customer_reference": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "currency": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "sku": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "quantity": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "unit_price": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          }
+        },
+        "estimated_edits": 0,
+        "missing_rows": 0,
+        "extra_rows": 0,
+        "route": "extraction_review",
+        "route_correct": true,
+        "elapsed_ms": 8858,
+        "error": null,
+        "trace": {
+          "trigger": "Forced paired evaluation",
+          "decision": "escalate",
+          "reason": "The unit_price field contains an invalid value 'RM100.005' which appears to be a formatting error. The source does not provide an alternative value or clarification for this field.",
+          "initial_proposal": {
+            "po_number": {
+              "value": "PO-E12",
+              "page": 1,
+              "excerpt": "PO number: PO-E12",
+              "alternatives": []
+            },
+            "customer_reference": {
+              "value": "CUST-101",
+              "page": 1,
+              "excerpt": "Customer reference: CUST-101",
+              "alternatives": []
+            },
+            "currency": {
+              "value": "MYR",
+              "page": 1,
+              "excerpt": "Currency: MYR",
+              "alternatives": []
+            },
+            "lines": [
+              {
+                "sku": {
+                  "value": "BRG-6204",
+                  "page": 1,
+                  "excerpt": "SKU                     Qty               Unit price\n\n   BRG-6204                3               RM100.005",
+                  "alternatives": []
+                },
+                "quantity": {
+                  "value": "3",
+                  "page": 1,
+                  "excerpt": "SKU                     Qty               Unit price\n\n   BRG-6204                3               RM100.005",
+                  "alternatives": []
+                },
+                "unit_price": {
+                  "value": "RM100.005",
+                  "page": 1,
+                  "excerpt": "SKU                     Qty               Unit price\n\n   BRG-6204                3               RM100.005",
+                  "alternatives": []
+                },
+                "unit": null
+              }
+            ]
+          },
+          "handoffs": [
+            {
+              "agent": "Extraction Agent",
+              "step": "initial extraction",
+              "pages": [
+                1
+              ],
+              "duration_ms": 6620,
+              "called": true,
+              "raw": "{\"po_number\":{\"value\":\"PO-E12\",\"page\":1,\"excerpt\":\"PO number: PO-E12\",\"alternatives\":[]},\"customer_reference\":{\"value\":\"CUST-101\",\"page\":1,\"excerpt\":\"Customer reference: CUST-101\",\"alternatives\":[]},\"currency\":{\"value\":\"MYR\",\"page\":1,\"excerpt\":\"Currency: MYR\",\"alternatives\":[]},\"lines\":[{\"sku\":{\"value\":\"BRG-6204\",\"page\":1,\"excerpt\":\"SKU                     Qty               Unit price\\n\\n   BRG-6204                3               RM100.005\",\"alternatives\":[]},\"quantity\":{\"value\":\"3\",\"page\":1,\"excerpt\":\"SKU                     Qty               Unit price\\n\\n   BRG-6204                3               RM100.005\",\"alternatives\":[]},\"unit_price\":{\"value\":\"RM100.005\",\"page\":1,\"excerpt\":\"SKU                     Qty               Unit price\\n\\n   BRG-6204                3               RM100.005\",\"alternatives\":[]},\"unit\":null}]}",
+              "source": null,
+              "reused_baseline": false
+            },
+            {
+              "agent": "Review Agent",
+              "step": "review initial proposal",
+              "called": true,
+              "pages": [
+                1
+              ],
+              "raw": "{\"action\": \"escalate\", \"reason\": \"The unit_price field contains an invalid value 'RM100.005' which appears to be a formatting error. The source does not provide an alternative value or clarification for this field.\"}",
+              "duration_ms": 2226,
+              "decision": {
+                "action": "escalate",
+                "reason": "The unit_price field contains an invalid value 'RM100.005' which appears to be a formatting error. The source does not provide an alternative value or clarification for this field.",
+                "targets": []
+              }
+            }
+          ],
+          "rereads": 0,
+          "call_count": 2,
+          "elapsed_ms": 8851,
+          "evidence_issues": []
+        },
+        "proposal": {
+          "po_number": {
+            "value": "PO-E12",
+            "page": 1,
+            "excerpt": "PO number: PO-E12",
+            "alternatives": []
+          },
+          "customer_reference": {
+            "value": "CUST-101",
+            "page": 1,
+            "excerpt": "Customer reference: CUST-101",
+            "alternatives": []
+          },
+          "currency": {
+            "value": "MYR",
+            "page": 1,
+            "excerpt": "Currency: MYR",
+            "alternatives": []
+          },
+          "lines": [
+            {
+              "sku": {
+                "value": "BRG-6204",
+                "page": 1,
+                "excerpt": "SKU                     Qty               Unit price\n\n   BRG-6204                3               RM100.005",
+                "alternatives": []
+              },
+              "quantity": {
+                "value": "3",
+                "page": 1,
+                "excerpt": "SKU                     Qty               Unit price\n\n   BRG-6204                3               RM100.005",
+                "alternatives": []
+              },
+              "unit_price": {
+                "value": "RM100.005",
+                "page": 1,
+                "excerpt": "SKU                     Qty               Unit price\n\n   BRG-6204                3               RM100.005",
+                "alternatives": []
+              },
+              "unit": null
+            }
+          ]
+        },
+        "issues": [
+          "Line 1 requires an unambiguous, nonnegative unit price with at most two decimals.",
+          "LangGraph review requires staff resolution: The unit_price field contains an invalid value 'RM100.005' which appears to be a formatting error. The source does not provide an alternative value or clarification for this field."
+        ]
+      },
+      "baseline": {
+        "fields": {
+          "po_number": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "customer_reference": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "currency": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "sku": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "quantity": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          },
+          "unit_price": {
+            "expected": 1,
+            "correct": 1,
+            "evidenced": 1,
+            "expected_blank": 0,
+            "correct_blank": 0
+          }
+        },
+        "estimated_edits": 0,
+        "missing_rows": 0,
+        "extra_rows": 0,
+        "route": "extraction_review",
+        "route_correct": true,
+        "elapsed_ms": 6868,
+        "error": null,
+        "trace": {
+          "call_count": 1,
+          "rereads": 0,
+          "raw": "{\"po_number\":{\"value\":\"PO-E12\",\"page\":1,\"excerpt\":\"PO number: PO-E12\",\"alternatives\":[]},\"customer_reference\":{\"value\":\"CUST-101\",\"page\":1,\"excerpt\":\"Customer reference: CUST-101\",\"alternatives\":[]},\"currency\":{\"value\":\"MYR\",\"page\":1,\"excerpt\":\"Currency: MYR\",\"alternatives\":[]},\"lines\":[{\"sku\":{\"value\":\"BRG-6204\",\"page\":1,\"excerpt\":\"SKU                     Qty               Unit price\\n\\n   BRG-6204                3               RM100.005\",\"alternatives\":[]},\"quantity\":{\"value\":\"3\",\"page\":1,\"excerpt\":\"SKU                     Qty               Unit price\\n\\n   BRG-6204                3               RM100.005\",\"alternatives\":[]},\"unit_price\":{\"value\":\"RM100.005\",\"page\":1,\"excerpt\":\"SKU                     Qty               Unit price\\n\\n   BRG-6204                3               RM100.005\",\"alternatives\":[]},\"unit\":null}]}"
+        },
+        "proposal": {
+          "po_number": {
+            "value": "PO-E12",
+            "page": 1,
+            "excerpt": "PO number: PO-E12",
+            "alternatives": []
+          },
+          "customer_reference": {
+            "value": "CUST-101",
+            "page": 1,
+            "excerpt": "Customer reference: CUST-101",
+            "alternatives": []
+          },
+          "currency": {
+            "value": "MYR",
+            "page": 1,
+            "excerpt": "Currency: MYR",
+            "alternatives": []
+          },
+          "lines": [
+            {
+              "sku": {
+                "value": "BRG-6204",
+                "page": 1,
+                "excerpt": "SKU                     Qty               Unit price\n\n   BRG-6204                3               RM100.005",
+                "alternatives": []
+              },
+              "quantity": {
+                "value": "3",
+                "page": 1,
+                "excerpt": "SKU                     Qty               Unit price\n\n   BRG-6204                3               RM100.005",
+                "alternatives": []
+              },
+              "unit_price": {
+                "value": "RM100.005",
+                "page": 1,
+                "excerpt": "SKU                     Qty               Unit price\n\n   BRG-6204                3               RM100.005",
+                "alternatives": []
+              },
+              "unit": null
+            }
+          ]
+        },
+        "issues": [
+          "Line 1 requires an unambiguous, nonnegative unit price with at most two decimals."
+        ]
+      }
+    }
+  ]
+}

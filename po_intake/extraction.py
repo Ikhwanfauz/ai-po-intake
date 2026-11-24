@@ -27,6 +27,7 @@ class TransientExtractionError(ValueError):
 class ExtractionOutput:
     raw: str
     source: str
+    original_raw: str | None = None
 
 
 class Proposal(BaseModel):
@@ -126,19 +127,20 @@ For each item, the sku, quantity, and unit_price objects refer to that same prin
 Return only the structured JSON."""
 
 
-def extract_with_ollama(settings, pages):
+def ollama_structured(settings, schema, prompt, data, *, timeout=None, max_tokens=None):
+    options = {**MODEL_OPTIONS, "num_predict": max_tokens} if max_tokens else MODEL_OPTIONS
     try:
         response = httpx.post(
             f"{settings.ollama_url.rstrip('/')}/api/chat",
             json={
                 "model": settings.model, "stream": False, "think": False,
-                "options": MODEL_OPTIONS, "format": Draft.model_json_schema(),
+                "options": options, "format": schema.model_json_schema(),
                 "messages": [
-                    {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user", "content": json.dumps(pages, ensure_ascii=False)},
+                    {"role": "system", "content": prompt},
+                    {"role": "user", "content": json.dumps(data, ensure_ascii=False)},
                 ],
             },
-            timeout=settings.timeout,
+            timeout=timeout if timeout is not None else settings.timeout,
             trust_env=False,
         )
     except httpx.RequestError as exc:
@@ -149,3 +151,7 @@ def extract_with_ollama(settings, pages):
         error = TransientExtractionError if response.status_code == 429 or response.status_code >= 500 else ValueError
         raise error(f"Ollama returned HTTP {response.status_code}. Check the runner and model tag.")
     return response.json()["message"]["content"]
+
+
+def extract_with_ollama(settings, pages):
+    return ollama_structured(settings, Draft, SYSTEM_PROMPT, pages)

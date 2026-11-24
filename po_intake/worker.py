@@ -3,6 +3,7 @@ import logging
 import time
 from dataclasses import dataclass
 from datetime import timedelta
+from time import perf_counter
 
 import pymupdf
 from pydantic import ValidationError
@@ -11,10 +12,11 @@ from sqlalchemy.orm import Session
 
 from po_intake import jobs, notifications, review
 from po_intake.config import Settings
-from po_intake.db import Attempt, ExtractionJob, Intake, make_engine
+from po_intake.db import Attempt, ExtractionJob, GraphRun, Intake, Snapshot, make_engine
 from po_intake.extraction import (
-    MAX_TEXT_CHARS, Draft, ExtractionOutput, TransientExtractionError, extract_with_ollama, pdf_pages,
+    MAX_TEXT_CHARS, Draft, ExtractionOutput, TransientExtractionError, extract_with_ollama, ollama_structured, pdf_pages,
 )
+from po_intake.extraction_graph import GraphResult, evidence_trigger, graph_issues, run_graph
 
 log = logging.getLogger(__name__)
 
@@ -27,9 +29,12 @@ class ExtractionResult:
     error: str | None = None
     output_source: str | None = None
     retryable: bool = False
+    elapsed_ms: int = 0
+    graph: GraphResult | None = None
 
 
 def extract(settings, path, extractor):
+    started = perf_counter()
     result = ExtractionResult()
     try:
         result.pages = pdf_pages(path.read_bytes())
@@ -38,10 +43,12 @@ def extract(settings, path, extractor):
         if any(page["text"].strip() for page in result.pages):
             output = extractor(settings, result.pages)
             if isinstance(output, ExtractionOutput):
-                result.raw, result.output_source = output.raw, output.source
+                result.raw, result.output_source = output.original_raw or output.raw, output.source
+                result.draft = Draft.model_validate_json(output.raw)
             else:
                 result.raw = output
-        result.draft = Draft.model_validate_json(result.raw) if result.raw is not None else Draft()
+        if result.draft is None:
+            result.draft = Draft.model_validate_json(result.raw) if result.raw is not None else Draft()
     except (TransientExtractionError, OSError) as exc:
         result.error = str(exc) if isinstance(exc, TransientExtractionError) else "Stored PDF could not be read."
         result.retryable = True
@@ -52,6 +59,7 @@ def extract(settings, path, extractor):
     except Exception:
         log.exception("Extraction failed unexpectedly")
         result.error = "Extraction failed unexpectedly. Check the worker log and retry."
+    result.elapsed_ms = round((perf_counter() - started) * 1000)
     return result
 
 
@@ -70,8 +78,15 @@ def publish(engine, settings, lease, result, *, automatic_retry=True):
             attempt.settings = {**attempt.settings, "source": result.output_source}
 
         if result.error is None:
-            attempt.draft = result.draft.model_dump(mode="json")
-            attempt.validation = review.store_initial_review(db, intake, attempt, result.draft)
+            draft = result.graph.draft if result.graph else result.draft
+            holds = graph_issues(result.graph) if result.graph else []
+            attempt.draft = draft.model_dump(mode="json")
+            attempt.validation = review.store_initial_review(db, intake, attempt, draft, graph_issues=holds)
+            if result.graph:
+                snapshot = db.get(Snapshot, attempt.id)
+                db.add(GraphRun(intake_id=intake.id, source_snapshot_id=snapshot.id, mode="automatic",
+                                author="LangGraph", model=settings.model, candidate=attempt.draft,
+                                assessment=snapshot.assessment, trace=result.graph.trace))
             attempt.state = intake.state = "complete"
             jobs.end_claim(job, "complete", now)
             notifications.sync_review(db, settings, intake)
@@ -86,19 +101,30 @@ def publish(engine, settings, lease, result, *, automatic_retry=True):
         return True
 
 
-def run_one(engine, settings, extractor=extract_with_ollama, *, intake_id=None, automatic_retry=True):
+def run_one(engine, settings, extractor=extract_with_ollama, *, intake_id=None, automatic_retry=True,
+            graph_chat=ollama_structured):
     lease = jobs.claim(engine, settings, intake_id)
     if lease is None:
         return None
     log.info("Claimed intake %s, attempt %s", lease.intake_id, lease.attempt_id)
     result = extract(settings, lease.path, extractor)
+    if settings.graph_auto and result.draft is not None and result.output_source != "Demo fixture replay":
+        trigger = evidence_trigger(result.draft, result.pages)
+        if trigger:
+            result.graph = run_graph(
+                settings, result.pages, trigger, chat=graph_chat, initial=result.draft,
+                initial_raw=result.raw, initial_elapsed_ms=result.elapsed_ms, initial_source=result.output_source,
+                fallback=result.draft,
+            )
     return publish(engine, settings, lease, result, automatic_retry=automatic_retry)
 
 
 def main():
     parser = argparse.ArgumentParser(description="Process leased purchase order intake jobs.")
     parser.add_argument("--once", action="store_true", help="Process at most one available job.")
-    parser.add_argument("--fixture-replay", action="store_true", help="Replay the shipped demo fixture drafts.")
+    fixture = parser.add_mutually_exclusive_group()
+    fixture.add_argument("--fixture-replay", action="store_true", help="Replay the shipped Milestone 2 fixture drafts.")
+    fixture.add_argument("--graph-demo", action="store_true", help="Withhold the PO-201 continuation price for the walkthrough.")
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     settings = Settings()
@@ -106,6 +132,9 @@ def main():
     extractor = extract_with_ollama
     if args.fixture_replay:
         from scripts.milestone2_demo import extract_demo
+        extractor = extract_demo
+    elif args.graph_demo:
+        from scripts.milestone4_demo import extract_demo
         extractor = extract_demo
     try:
         if args.once:

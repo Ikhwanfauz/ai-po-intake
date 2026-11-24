@@ -4,6 +4,8 @@ The local dashboard stores purchase order PDFs, checks draft evidence and agreed
 
 Milestone 3 adds an extraction worker and n8n integration for Gmail intake, Telegram review alerts, and Gmail confirmations. Follow the [Milestone 3 Windows guide](docs/milestone-3.md) for startup, credentials, the PO-104 walkthrough, and credential-free checks.
 
+Milestone 4 adds bounded LangGraph extraction review, saved handoffs, and staff candidate snapshots. The [Milestone 4 Windows guide](docs/milestone-4.md) covers startup, the multipage reread, the ambiguous PDF, and the paired evaluation.
+
 ## Start the Milestone 2 Windows demo
 
 Start Docker Desktop and the Ollama Windows app. Use PowerShell from the project folder. This workspace already has a virtual environment. On a fresh checkout, create it with `python -m venv .venv` using a working Python 3.12 installation.

@@ -1,0 +1,320 @@
+{
+  "version": "m4-held-out-v1",
+  "cases": [
+    {
+      "id": "E01",
+      "category": "clean",
+      "file": "E01.pdf",
+      "sha256": "243ff17203a33c08e5c5346fdbcc3d16a6c9a18f20c2d414b4e127ae38cdf367",
+      "expected_route": "ready",
+      "headers": {
+        "po_number": "PO-E01",
+        "customer_reference": "CUST-101",
+        "currency": "MYR"
+      },
+      "lines": [
+        {
+          "page": 1,
+          "sku": "BRG-6204",
+          "quantity": 2,
+          "unit_price": "100.00",
+          "printed_row": "BRG-6204 2 RM100.00",
+          "price_alternatives": []
+        },
+        {
+          "page": 1,
+          "sku": "BELT-A42",
+          "quantity": 3,
+          "unit_price": "45.50",
+          "printed_row": "BELT-A42 3 RM45.50",
+          "price_alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "E02",
+      "category": "clean",
+      "file": "E02.pdf",
+      "sha256": "f345804378b4c54fb50b9d2fa60041350b903eddf2e37ee462bbf8c47f309b22",
+      "expected_route": "ready",
+      "headers": {
+        "po_number": "PO-E02",
+        "customer_reference": "CUST-101",
+        "currency": "MYR"
+      },
+      "lines": [
+        {
+          "page": 1,
+          "sku": "BELT-A42",
+          "quantity": 5,
+          "unit_price": "45.5",
+          "printed_row": "BELT-A42 5 RM45.5",
+          "price_alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "E03",
+      "category": "multipage",
+      "file": "E03.pdf",
+      "sha256": "233e8fbcb48f5e691f9e3c3c45a23b0b8f597820f2c26571688a016ab1362317",
+      "expected_route": "ready",
+      "headers": {
+        "po_number": "PO-E03",
+        "customer_reference": "CUST-101",
+        "currency": "MYR"
+      },
+      "lines": [
+        {
+          "page": 1,
+          "sku": "BRG-6204",
+          "quantity": 2,
+          "unit_price": "100.00",
+          "printed_row": "BRG-6204 2 RM100.00",
+          "price_alternatives": []
+        },
+        {
+          "page": 2,
+          "sku": "BELT-A42",
+          "quantity": 3,
+          "unit_price": "45.50",
+          "printed_row": "BELT-A42 3 RM45.50",
+          "price_alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "E04",
+      "category": "multipage alias",
+      "file": "E04.pdf",
+      "sha256": "e9943d68e485e16a13324f9010872b6ec9ca4d785c1246536dd230408bf15221",
+      "expected_route": "ready",
+      "headers": {
+        "po_number": "PO-E04",
+        "customer_reference": "CUST-101",
+        "currency": "MYR"
+      },
+      "lines": [
+        {
+          "page": 1,
+          "sku": "6204-BRG",
+          "quantity": 7,
+          "unit_price": "100",
+          "printed_row": "6204-BRG 7 RM100",
+          "price_alternatives": []
+        },
+        {
+          "page": 2,
+          "sku": "BELT-A42",
+          "quantity": 3,
+          "unit_price": "45.50",
+          "printed_row": "BELT-A42 3 RM45.50",
+          "price_alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "E05",
+      "category": "price mismatch",
+      "file": "E05.pdf",
+      "sha256": "448a909701983947eede5043970c99887bd876c2054be9c17d2b047c4c0dd2e1",
+      "expected_route": "business_review",
+      "headers": {
+        "po_number": "PO-E05",
+        "customer_reference": "CUST-101",
+        "currency": "MYR"
+      },
+      "lines": [
+        {
+          "page": 1,
+          "sku": "BRG-6204",
+          "quantity": 2,
+          "unit_price": "90.00",
+          "printed_row": "BRG-6204 2 RM90.00",
+          "price_alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "E06",
+      "category": "multipage price mismatch",
+      "file": "E06.pdf",
+      "sha256": "62c458f91cfe632c3b8afbfeec911fe32027e4b6e2b98bdf4ce7b9ecb0b6e6d8",
+      "expected_route": "business_review",
+      "headers": {
+        "po_number": "PO-E06",
+        "customer_reference": "CUST-101",
+        "currency": "MYR"
+      },
+      "lines": [
+        {
+          "page": 1,
+          "sku": "BELT-A42",
+          "quantity": 3,
+          "unit_price": "45.50",
+          "printed_row": "BELT-A42 3 RM45.50",
+          "price_alternatives": []
+        },
+        {
+          "page": 2,
+          "sku": "BRG-6204",
+          "quantity": 4,
+          "unit_price": "102.00",
+          "printed_row": "BRG-6204 4 RM102.00",
+          "price_alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "E07",
+      "category": "missing PO",
+      "file": "E07.pdf",
+      "sha256": "89c7e469e6af5894221c1e8c9a6b3c0742aef496658b14479a9bef2a681848c6",
+      "expected_route": "extraction_review",
+      "headers": {
+        "po_number": null,
+        "customer_reference": "CUST-101",
+        "currency": "MYR"
+      },
+      "lines": [
+        {
+          "page": 1,
+          "sku": "BRG-6204",
+          "quantity": 2,
+          "unit_price": "100.00",
+          "printed_row": "BRG-6204 2 RM100.00",
+          "price_alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "E08",
+      "category": "missing quantity",
+      "file": "E08.pdf",
+      "sha256": "e27e77e6a547523e3e4c3f5b9722b1c3cbeafe6854eca8dd87f6dfa1892f2936",
+      "expected_route": "extraction_review",
+      "headers": {
+        "po_number": "PO-E08",
+        "customer_reference": "CUST-101",
+        "currency": "MYR"
+      },
+      "lines": [
+        {
+          "page": 1,
+          "sku": "BRG-6204",
+          "quantity": 2,
+          "unit_price": "100.00",
+          "printed_row": "BRG-6204 2 RM100.00",
+          "price_alternatives": []
+        },
+        {
+          "page": 2,
+          "sku": "BELT-A42",
+          "quantity": null,
+          "unit_price": "45.50",
+          "printed_row": "BELT-A42 TBD RM45.50",
+          "price_alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "E09",
+      "category": "unselected price options",
+      "file": "E09.pdf",
+      "sha256": "543fb770e8bac4a54640f4bcf2533faf1a245068931ca61158d454fdfb22a5a7",
+      "expected_route": "extraction_review",
+      "headers": {
+        "po_number": "PO-E09",
+        "customer_reference": "CUST-101",
+        "currency": "MYR"
+      },
+      "lines": [
+        {
+          "page": 1,
+          "sku": "BRG-6204",
+          "quantity": 2,
+          "unit_price": null,
+          "printed_row": "BRG-6204 2 RM100.00 RM90.00",
+          "price_alternatives": [
+            "RM100.00",
+            "RM90.00"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "E10",
+      "category": "two labeled PO numbers",
+      "file": "E10.pdf",
+      "sha256": "8d63fa2ed367ec23cab27e91e62f5214e3294505af9d425e1d7f3fba36c6ed4a",
+      "expected_route": "extraction_review",
+      "headers": {
+        "po_number": null,
+        "customer_reference": "CUST-101",
+        "currency": "MYR"
+      },
+      "lines": [
+        {
+          "page": 1,
+          "sku": "BELT-A42",
+          "quantity": 3,
+          "unit_price": "45.50",
+          "printed_row": "BELT-A42 3 RM45.50",
+          "price_alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "E11",
+      "category": "repeated SKU",
+      "file": "E11.pdf",
+      "sha256": "95c0bae5df18591ba2c234e5d333fb09d88e58aefc994aecc65caf24442c472c",
+      "expected_route": "ready",
+      "headers": {
+        "po_number": "PO-E11",
+        "customer_reference": "CUST-101",
+        "currency": "MYR"
+      },
+      "lines": [
+        {
+          "page": 1,
+          "sku": "BRG-6204",
+          "quantity": 2,
+          "unit_price": "100.00",
+          "printed_row": "BRG-6204 2 RM100.00",
+          "price_alternatives": []
+        },
+        {
+          "page": 1,
+          "sku": "BRG-6204",
+          "quantity": 5,
+          "unit_price": "100.00",
+          "printed_row": "BRG-6204 5 RM100.00",
+          "price_alternatives": []
+        }
+      ]
+    },
+    {
+      "id": "E12",
+      "category": "unsupported price precision",
+      "file": "E12.pdf",
+      "sha256": "fd0f81b7ab403c4d6dc086aaa295baf2ca57e880e0c4334405ff31b1ec5b526b",
+      "expected_route": "extraction_review",
+      "headers": {
+        "po_number": "PO-E12",
+        "customer_reference": "CUST-101",
+        "currency": "MYR"
+      },
+      "lines": [
+        {
+          "page": 1,
+          "sku": "BRG-6204",
+          "quantity": 3,
+          "unit_price": "100.005",
+          "printed_row": "BRG-6204 3 RM100.005",
+          "price_alternatives": []
+        }
+      ]
+    }
+  ]
+}
