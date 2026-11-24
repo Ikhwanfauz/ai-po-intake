@@ -2,10 +2,9 @@
 
 ## Start a fresh local demo
 
-Start Docker Desktop and the Ollama Windows app. Use a Python 3.12 virtual environment. Run the following from the repository in PowerShell. If the environment already exists, skip the first Python command.
+Start Docker Desktop and the Ollama Windows app. Use a Python 3.12 virtual environment. Run all PowerShell commands from your own repository root, including when you open a new window. If the environment already exists, skip the first Python command.
 
 ```powershell
-# Run from your own repository root.
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
 docker compose up -d --wait db
@@ -31,7 +30,6 @@ If the model is absent, run `ollama pull qwen3:8b` before starting the API. The 
 In the second PowerShell window, generate and upload the PDFs, run the frozen evaluation, and launch Streamlit.
 
 ```powershell
-# Run from your own repository root.
 $env:PO_API_URL = 'http://127.0.0.1:8005'
 $env:PO_MCP_API_URL = $env:PO_API_URL
 $env:PO_STAFF_KEY = ''
@@ -46,7 +44,6 @@ The generated PDFs are in `data/milestone5/fixtures`. The seed activates `PO-106
 For a standalone MCP probe, use another PowerShell prompt in the repository while the API is running. It starts the same stdio server, discovers the tool, and prints the real arguments and result.
 
 ```powershell
-# Run from your own repository root.
 $env:PO_MCP_API_URL = 'http://127.0.0.1:8005'
 $env:PO_STAFF_KEY = ''
 $receipt = (Invoke-RestMethod "$env:PO_MCP_API_URL/intakes") | Where-Object filename -eq 'PO-106-V2.pdf' | Select-Object -First 1

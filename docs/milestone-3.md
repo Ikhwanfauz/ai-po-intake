@@ -4,10 +4,9 @@ Use the existing PO-104 fixtures and two demo Gmail addresses. The buyer mailbox
 
 ## 1. Set up the demo
 
-Start Docker Desktop and the Ollama Windows app. In PowerShell, create a local settings file and generate separate keys for n8n and the staff API.
+Start Docker Desktop and the Ollama Windows app. Run all PowerShell commands from your own repository root, including when you open a new window. Create a local settings file and generate separate keys for n8n and the staff API.
 
 ```powershell
-# Run from your own repository root.
 .\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
 if (-not (Test-Path .env.milestone3)) {
     $demoStaffKey = [guid]::NewGuid().ToString('N') + [guid]::NewGuid().ToString('N')
@@ -66,7 +65,6 @@ Use three PowerShell windows. The API listens on port 8003 so Docker Desktop can
 **API window**
 
 ```powershell
-# Run from your own repository root.
 . .\scripts\use_milestone3_env.ps1
 if (-not $env:PO_STAFF_KEY -or -not $env:PO_INTEGRATION_KEY) { throw 'Set both demo keys first.' }
 .\.venv\Scripts\python.exe -m alembic upgrade head
@@ -77,7 +75,6 @@ if (-not $env:PO_STAFF_KEY -or -not $env:PO_INTEGRATION_KEY) { throw 'Set both d
 **Worker window**
 
 ```powershell
-# Run from your own repository root.
 . .\scripts\use_milestone3_env.ps1
 .\.venv\Scripts\python.exe -m po_intake.worker --fixture-replay
 ```
@@ -87,7 +84,6 @@ if (-not $env:PO_STAFF_KEY -or -not $env:PO_INTEGRATION_KEY) { throw 'Set both d
 **Dashboard window**
 
 ```powershell
-# Run from your own repository root.
 . .\scripts\use_milestone3_env.ps1
 .\.venv\Scripts\python.exe -m streamlit run dashboard.py --server.address 127.0.0.1 --server.port 8503 --server.headless true
 ```
@@ -115,7 +111,6 @@ The dispatch workflow retries the result POST. Each claimed attempt runs its pro
 Use a fresh demo database and keep the n8n delivery workflow unpublished. Start FastAPI with a configured demo recipient and `PO_OUTBOUND_ENABLED=true`, and set `PO_NOTIFICATION_LEASE_SECONDS=5` in the API window before startup. Upload only the clean V2 PDF through the dashboard, wait for extraction, and approve. From another PowerShell window, claim the Gmail intent and leave it without a result.
 
 ```powershell
-# Run from your own repository root.
 . .\scripts\use_milestone3_env.ps1
 $demoHeaders = @{ 'X-Integration-Key' = $env:PO_INTEGRATION_KEY }
 $demoClaim = Invoke-RestMethod 'http://127.0.0.1:8003/integrations/notifications/claim' -Method Post -Headers $demoHeaders
@@ -130,7 +125,6 @@ Refresh the approved intake. **Gmail · Unknown** should appear alongside the co
 With PostgreSQL running, the tests create temporary schemas and PDF directories. Use the migrated demo settings for the standalone schema check.
 
 ```powershell
-# Run from your own repository root.
 . .\scripts\use_milestone3_env.ps1
 .\.venv\Scripts\python.exe -m alembic check
 .\.venv\Scripts\python.exe -m pytest -q

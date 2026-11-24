@@ -1,13 +1,12 @@
 # Milestone 4 on Windows
 
-This walkthrough uses a separate PostgreSQL database and PDF directory. Start Docker Desktop and the Ollama Windows app. The API listens on port 8004 and the dashboard on 8504. Use a fresh PowerShell window for each process.
+This walkthrough uses a separate PostgreSQL database and PDF directory. Start Docker Desktop and the Ollama Windows app. The API listens on port 8004 and the dashboard on 8504. Use a fresh PowerShell window for each process and run all commands from your own repository root.
 
 ## Start the demo
 
 Run the install and database creation once from the repository root. If the database already exists, reuse it or pick a fresh name and use it in each command below.
 
 ```powershell
-# Run from your own repository root.
 .\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
 docker compose up -d --wait db
 docker compose exec -T db createdb -U po_demo po_demo_m4
@@ -19,7 +18,6 @@ If the tag is absent, run `ollama pull qwen3:8b`. The database default below lea
 **API window**
 
 ```powershell
-# Run from your own repository root.
 $env:DATABASE_URL = 'postgresql+psycopg://po_demo:po_demo@127.0.0.1:55432/po_demo_m4'
 $env:PDF_STORAGE = 'data/po_demo_m4/pdf'
 $env:OLLAMA_URL = 'http://127.0.0.1:11434'
@@ -35,7 +33,6 @@ $env:PO_STAFF_KEY = ''
 **Worker window**
 
 ```powershell
-# Run from your own repository root.
 $env:DATABASE_URL = 'postgresql+psycopg://po_demo:po_demo@127.0.0.1:55432/po_demo_m4'
 $env:PDF_STORAGE = 'data/po_demo_m4/pdf'
 $env:OLLAMA_URL = 'http://127.0.0.1:11434'
@@ -50,7 +47,6 @@ The walkthrough flag recognizes the shipped PO-201 page text and withholds the p
 **Dashboard window**
 
 ```powershell
-# Run from your own repository root.
 $env:PO_API_URL = 'http://127.0.0.1:8004'
 $env:PO_FOREGROUND_EXTRACTION = 'false'
 $env:PO_STAFF_KEY = ''
