@@ -1,4 +1,5 @@
 import os
+from datetime import datetime, timezone
 
 import httpx
 import streamlit as st
@@ -458,6 +459,46 @@ def show_po_chat(po):
                 st.json(answer["trace"]["mcp"])
 
 
+def open_intake(intake_id):
+    st.query_params["intake"] = str(intake_id)
+
+
+def show_intake_list():
+    heading, actions = st.columns([5, 1], vertical_alignment="center")
+    heading.subheader("Intake receipts")
+    actions.button("Refresh", key="refresh-intakes", width="stretch")
+    intakes = call("/intakes")
+    if not intakes:
+        if intakes == []:
+            st.info("Upload a purchase order PDF to start a review.")
+        return None
+
+    timeline = sorted(
+        ((datetime.fromisoformat(row["received_at"]), row["id"], row) for row in intakes),
+        reverse=True,
+    )
+    requested = st.query_params.get("intake")
+    ids = {str(row["id"]): row["id"] for row in intakes}
+    selected = ids.get(requested, timeline[0][1])
+    if requested != str(selected):
+        open_intake(selected)
+
+    with st.container(height=300 if len(intakes) > 4 else "content"):
+        for received_at, intake_id, row in timeline:
+            with st.container(border=True):
+                details, action = st.columns([5, 1], vertical_alignment="center")
+                source = "Gmail" if row["source"] == "gmail" else "Upload"
+                received = received_at.astimezone(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+                resend = " · Exact resend" if row["canonical_intake_id"] else ""
+                details.text(row["filename"])
+                details.caption(f"{source} · {received} · {row['state'].capitalize()}{resend}")
+                active = intake_id == selected
+                action.button(f"{'Selected' if active else 'Open'} #{intake_id}", key=f"open-intake-{intake_id}",
+                              type="primary" if active else "secondary", width="stretch",
+                              on_click=open_intake, args=(intake_id,))
+    return selected
+
+
 def main():
     st.title("Meridian PO Intake")
     customer_list = call("/customers")
@@ -479,28 +520,11 @@ def main():
                 receipt = call("/intakes", "POST", files={"file": (file.name, file.getvalue(), "application/pdf")},
                                data={"customer_context": context or ""})
                 if receipt is not None:
-                    st.session_state["intake_select"] = receipt["id"]
-                    st.query_params["intake"] = receipt["id"]
+                    open_intake(receipt["id"])
                     if FOREGROUND and receipt["state"] == "pending":
                         process(receipt["id"])
-        intakes = call("/intakes")
-        if intakes:
-            labels = {
-                row["id"]: f"#{row['id']} · {row['filename']} · "
-                f"{'Exact resend' if row['canonical_intake_id'] else row['state'].title()}"
-                for row in intakes
-            }
-            selected = st.query_params.get("intake", "")
-            default = next((i for i, key in enumerate(labels) if str(key) == selected), 0)
-            if "intake_select" not in st.session_state:
-                st.session_state["intake_select"] = list(labels)[default]
-            left, right = st.columns([4, 1], vertical_alignment="bottom")
-            with left:
-                intake_id = st.selectbox("Intake receipt", list(labels), format_func=labels.get, key="intake_select")
-                if str(intake_id) != selected:
-                    st.query_params["intake"] = intake_id
-            with right:
-                st.button("Refresh")
+        intake_id = show_intake_list()
+        if intake_id is not None:
             message = st.session_state.pop("review_feedback", None)
             if message:
                 feedback(*message)
@@ -514,8 +538,6 @@ def main():
                     show_notifications(intake_id)
                 if intake["po"]:
                     show_po_chat(intake["po"])
-        elif intakes == []:
-            st.info("Upload a purchase order PDF to start a review.")
 
     with orders_tab:
         orders = call("/orders")

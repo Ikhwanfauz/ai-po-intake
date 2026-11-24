@@ -2,6 +2,7 @@ import json
 import socket
 from contextlib import contextmanager
 from dataclasses import replace
+from datetime import datetime, timezone
 from pathlib import Path
 from threading import Thread
 from time import monotonic, sleep
@@ -21,7 +22,9 @@ from po_intake.db import Price, ReviewEvent, SalesOrder, Snapshot, Version
 from po_intake.mcp_client import server_parameters
 from po_intake.sop_index import SOP_DIR, build, load, search
 from scripts.evaluate_milestone5 import CASES, evaluate
+from scripts.milestone2_demo import FIXTURE_ROOT, extract_demo
 from scripts.milestone5_demo import activate_v2, demo_extractor, seed_fixtures, upload_fixture, write_fixtures
+from test_milestone3 import KEY, gmail
 
 
 def propose_ids(*args, **kwargs):
@@ -29,12 +32,12 @@ def propose_ids(*args, **kwargs):
 
 
 @contextmanager
-def live_api(settings, *, mcp_path=""):
+def live_api(settings, *, mcp_path="", extractor=demo_extractor):
     with socket.socket() as listener:
         listener.bind(("127.0.0.1", 0))
         url = f"http://127.0.0.1:{listener.getsockname()[1]}"
         settings = replace(settings, mcp_api_url=url + mcp_path, staff_key="m5-test-staff", outbound_enabled=False)
-        app = create_app(settings, extractor=demo_extractor, chat_model=propose_ids)
+        app = create_app(settings, extractor=extractor, chat_model=propose_ids)
         server = uvicorn.Server(uvicorn.Config(app, log_level="warning", lifespan="off"))
         thread = Thread(target=server.run, kwargs={"sockets": [listener]}, daemon=True)
         thread.start()
@@ -159,10 +162,69 @@ def test_same_dashboard_receipt_refreshes_after_revision(settings, monkeypatch, 
         assert list(page.chat_message) == []
         page.chat_input[0].set_value(question).run()
         assert not page.exception
-        assert page.selectbox(key="intake_select").value == v1["id"]
+        assert page.button(key=f"open-intake-{v1['id']}").label == f"Selected #{v1['id']}"
         assert any(f"PO-106 V2 · snapshot {active['snapshot']['id']}" == item.value for item in page.text)
         assert any("checked unit price MYR 100.00" in item.value for item in page.text)
         assert all("checked unit price MYR 90.00" not in item.value for item in page.text)
+
+
+def test_receipt_list_opens_po104_revisions_and_preserves_review(settings, monkeypatch):
+    settings = replace(settings, integration_key=KEY, gmail_senders={"buyer@example.test": "CUST-101"})
+    with live_api(settings, extractor=extract_demo) as (live, client):
+        v1 = gmail(client, "PO-104-V1.pdf", "list-v1")
+        client.post(f"/intakes/{v1['id']}/process").raise_for_status()
+        v2 = upload_fixture(client, FIXTURE_ROOT / "PO-104-V2.pdf")
+        v1_button, v2_button = (f"open-intake-{receipt['id']}" for receipt in (v1, v2))
+
+        monkeypatch.setenv("PO_API_URL", live.mcp_api_url)
+        monkeypatch.setenv("PO_STAFF_KEY", live.staff_key)
+        dashboard = Path(__file__).resolve().parents[1] / "dashboard.py"
+        page = AppTest.from_file(dashboard, default_timeout=20).run()
+        assert not page.exception
+        assert all(widget.label != "Intake receipt" for widget in page.selectbox)
+        assert [item.value for item in page.text[:2]] == ["PO-104-V2.pdf", "PO-104-V1.pdf"]
+        received = datetime.fromisoformat(v1["received_at"]).astimezone(timezone.utc)
+        assert f"Gmail · {received:%Y-%m-%d %H:%M:%S UTC} · Complete" in [item.value for item in page.caption]
+        assert any(item.value.startswith("Upload · ") and item.value.endswith(" · Complete") for item in page.caption)
+
+        page.button(key=v1_button).click().run()
+        assert page.button(key=v1_button).label == f"Selected #{v1['id']}"
+        assert any("V1 · Active" == item.value for item in page.subheader)
+        assert any("RM90.00 differs from agreed RM100.00" in item.value for item in page.warning)
+
+        page.button(key=v2_button).click().run()
+        assert any("V2 · Pending revision" == item.value for item in page.subheader)
+        assert any("Compare with active V1" == item.value for item in page.subheader)
+        page.text_input(key=f"revision-reason-{v2['snapshot']['id']}").set_value("Verified V2 against the PDF.")
+        next(button for button in page.button if button.label == "Activate revision").click().run()
+        assert any("V2 · Active" == item.value for item in page.subheader)
+
+        resend = gmail(client, "PO-104-V1.pdf", "list-v1-resend")
+        page.button(key="refresh-intakes").click().run()
+        assert page.button(key=v2_button).label == f"Selected #{v2['id']}"
+        assert [button.key for button in page.button if (button.key or "").startswith("open-intake-")] == [
+            f"open-intake-{resend['id']}", v2_button, v1_button,
+        ]
+        assert any(item.value.startswith("Gmail · ") and item.value.endswith(" · Complete · Exact resend")
+                   for item in page.caption)
+
+        page.checkbox(key=f"checked-{v2['snapshot']['id']}").check().run()
+        next(button for button in page.button if button.label == "Approve snapshot").click().run()
+        assert any("Confirmed order" in item.value for item in page.success)
+        assert len(client.get("/orders").raise_for_status().json()) == 1
+
+        page.chat_input[0].set_value("Which unit price and revision are active on this PO?").run()
+        assert not page.exception
+        assert any(f"PO-104 V2 · snapshot {v2['snapshot']['id']}" == item.value for item in page.text)
+        assert any("checked unit price MYR 100.00" in item.value for item in page.text)
+        assert any("Already approved as SO-" in item.value for item in page.text)
+        assert any(item.label == "MCP tool trace" for item in page.expander)
+
+        linked_page = AppTest.from_file(dashboard, default_timeout=20)
+        linked_page.query_params["intake"] = str(v1["id"])
+        linked_page.run()
+        assert linked_page.button(key=v1_button).label == f"Selected #{v1['id']}"
+        assert any("V1 · Superseded" == item.value for item in linked_page.subheader)
 
 
 def test_approval_and_current_price_conflict(settings, database, tmp_path):
